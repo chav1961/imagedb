@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xfs:root xmlns:xfs="http://www.fsys.purelib.chav1961.ru/">
+	<xfs:link name="css" ref="fsys:file:./src/main/resources/css/" />
+	<xfs:link name="doc" ref="fsys:file://e:/chav1961/workspace/purelib/doc/" />
+	<xfs:link name="images" ref="fsys:file:./src/main/resources/images/" />
+	<xfs:link name="static" ref="fsys:file:./src/main/resources/static/" />
+</xfs:root>

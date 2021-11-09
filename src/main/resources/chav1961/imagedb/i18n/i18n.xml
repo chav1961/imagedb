@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localization xmlns="http://www.i18n.purelib.chav1961.ru/">
+	<lang name="en">
+<!-- Localization for application titles --> 
+		<key name="application.title">(c) 2021 A.V.Chernomyrdin aka chav1961. Image database V.R.=0.0.1</key>
+		<key name="application.help.title">About...</key>
+		<key name="application.help">This application uses to store pictures with their's attributes and quick search by them</key>
+		<key name="application.ready">Ready to work...</key>
+		<key name="application.completed">Completed</key>
+		<key name="application.settings.saved">Settings are saved</key>
+
+<!-- Localization for application menu -->
+		<key name="menu.file">File</key>
+		<key name="menu.file.tt">FIle ment</key>
+		<key name="menu.file.connect">Connect</key>
+		<key name="menu.file.connect.tt">Connect to datbase</key>
+		<key name="menu.file.disconnect">Disconnect</key>
+		<key name="menu.file.disconnect.tt">Disconnect from dtabase</key>
+		<key name="menu.file.hide">Hide</key>
+		<key name="menu.file.hide.tt">Hide application window</key>
+		<key name="menu.file.quit">Quit</key>
+		<key name="menu.file.quit.tt">Quit application</key>
+		<key name="menu.tools">Tools</key>
+		<key name="menu.tools.tt">Application tools</key>
+		<key name="menu.tools.search">Search</key>
+		<key name="menu.tools.search.tt">Search images by comments</key>
+		<key name="menu.tools.db">Manage database</key>
+		<key name="menu.tools.db.tt">Manage database content</key>
+		<key name="menu.tools.db.install">Install</key>
+		<key name="menu.tools.db.install.tt">Install or reinstall database structure</key>
+		<key name="menu.tools.db.upgrade">Upgrade</key>
+		<key name="menu.tools.db.upgrade.tt">Upgrade database structure to current version</key>
+		<key name="menu.tools.db.backup">Backup</key>
+		<key name="menu.tools.db.backup.tt">Make backup for current DB state</key>
+		<key name="menu.tools.db.restore">Restore</key>
+		<key name="menu.tools.db.restore.tt">Restore database from backup</key>
+		<key name="menu.tools.db.uninstall">Uninstall</key>
+		<key name="menu.tools.db.uninstall.tt">Uninstall all database content</key>
+		<key name="menu.tools.settings">Settings</key>
+		<key name="menu.tools.settings.tt">Application settings</key>
+		<key name="menu.tools.languages">Languages</key>
+		<key name="menu.tools.languages.tt">Application languages</key>
+		<key name="menu.help">Help</key>
+		<key name="menu.help.tt">Help about application</key>
+		<key name="menu.help.guide">Guide</key>
+		<key name="menu.help.guide.tt">Application guide</key>
+		<key name="menu.help.update">Update soft</key>
+		<key name="menu.help.update.tt">Update application software</key>
+		<key name="menu.help.about">About...</key>
+		<key name="menu.help.about.tt">About application</key>
+		
+<!-- Localization for settings -->
+		<key name="settings.title">Application settings</key>
+		<key name="settings.title.tt">Settings for the application</key>
+		<key name="settings.title.help">Set content required and click "OK"</key>
+		<key name="settings.action.test">Test</key>
+		<key name="settings.action.test.tt">Test databse connection</key>
+		<key name="settings.driver">JDBC driver</key>
+		<key name="settings.driver.tt">JDBC driver location</key>
+		<key name="settings.connectionstring">Connection string</key>
+		<key name="settings.connectionstring.tt">Connection string to the driver</key>
+		<key name="settings.user">User name</key>
+		<key name="settings.user.tt">Database user</key>
+		
+		<key name="settings.illegal.driver">Selected jar [%1$s] is not a JDBC driver of doesn't support your connection string [%2$s]</key>
+		<key name="settings.database.error">Database error: %1$s</key>
+		<key name="settings.io.error">I/O error: %1$s</key>
+		<key name="settings.test.ok">Connection test successful: %1$s</key>
+
+<!-- Localization for ask password -->
+		<key name="askpassword.title">Password to database</key>
+		<key name="askpassword.title.tt">Password to connect to your database</key>
+		<key name="askpassword.title.help">type password to connect to your database</key>
+		<key name="askpassword.password">Enter password</key>
+		<key name="askpassword.password.tt">Enter password to connect to your database</key>
+
+<!-- Localization for DB manager -->
+		<key name="dbmanager.message.clear">Database structure is not installed</key>
+		<key name="dbmanager.message.corrupted">Database structure corrupted</key>
+		<key name="dbmanager.message.old">Database structure require upgrade</key>
+		<key name="dbmanager.message.ok">Database structure valid</key>
+
+<!-- Localization for navigator -->
+		<key name="tree.insert.child">Insert child</key>
+		<key name="tree.insert.child.tt">Insert child node</key>
+		<key name="tree.insert.image">Insert image</key>
+		<key name="tree.insert.image.tt">Insert image from file</key>
+		<key name="tree.insert.clipboard">Insert from clipboard</key>
+		<key name="tree.insert.clipboard.tt">Insert image from clipboard</key>
+		<key name="tree.edit">Edit</key>
+		<key name="tree.edit.tt">Edit current node</key>
+		<key name="tree.remove.subtree">Remove subtree</key>
+		<key name="tree.remove.subtree.tt">Remove current node and all children</key>
+
+		<key name="navigator.confirm.remove.title">Confirm remove subtree</key>
+		<key name="navigator.confirm.remove.message">Are you sure to remove this node and all it's children?</key>
+
+<!-- Localization for tree editor -->
+		<key name="treeitem.title">Tree editor</key>
+		<key name="treeitem.title.tt">Edit tree node</key>
+		<key name="treeitem.title.help">Edit tree node</key>
+		<key name="treeitem.name">Node name</key>
+		<key name="treeitem.name.tt">Any node name</key>
+		<key name="treeitem.comment">Comment</key>
+		<key name="treeitem.comment.tt">Any comment</key>
+
+<!-- Localization for image editor -->
+		<key name="imageitem.title">Image editor</key>
+		<key name="imageitem.title.tt">Edit image description</key>
+		<key name="imageitem.title.help">Edit image description</key>
+		<key name="imageitem.comment">Comment</key>
+		<key name="imageitem.comment.tt">Any comment</key>
+		
+	</lang>
+	<lang name="ru">
+<!-- Локализация заголовков приложения -->
+		<key name="application.title">(c) 2019 A.V.Chernomyrdin aka chav1961. База данных картинок V.R.=0.0.1</key>
+		<key name="application.help.title">О программе</key>
+		<key name="application.help">Программа предназначена для хранения картинок с их аттрибутами и быстрого поиска по ним</key>
+		<key name="application.ready">Готово к работе...</key>
+		<key name="application.completed">Выполнено</key>
+		<key name="application.settings.saved">Настройки сохранены</key>
+		
+<!-- Локализация меню приложения -->
+		<key name="menu.file">Файл</key>
+		<key name="menu.file.tt">Файловое меню</key>
+		<key name="menu.file.connect">Соединить</key>
+		<key name="menu.file.connect.tt">Соединить приложение с БД</key>
+		<key name="menu.file.disconnect">Разъединить</key>
+		<key name="menu.file.disconnect.tt">Отключить приложение от БД</key>
+		<key name="menu.file.hide">Скрыть</key>
+		<key name="menu.file.hide.tt">Скрыть окно приложения</key>
+		<key name="menu.file.quit">Выход</key>
+		<key name="menu.file.quit.tt">Выход из приложения</key>
+		<key name="menu.tools">Инструменты</key>
+		<key name="menu.tools.tt">Инструментирование приложения</key>
+		<key name="menu.tools.search">Поиск</key>
+		<key name="menu.tools.search.tt">Поиск картинок по комментариям</key>
+		<key name="menu.tools.db">Работа с БД</key>
+		<key name="menu.tools.db.tt">Манипуляции содержимым базы данных</key>
+		<key name="menu.tools.db.install">Установить</key>
+		<key name="menu.tools.db.install.tt">Создать либо пересоздать структуру базы данных</key>
+		<key name="menu.tools.db.upgrade">Обновить</key>
+		<key name="menu.tools.db.upgrade.tt">Обновить структуру БД до текущей версии</key>
+		<key name="menu.tools.db.backup">Копировать</key>
+		<key name="menu.tools.db.backup.tt">Сделать резервную копию текущего состояния БД</key>
+		<key name="menu.tools.db.restore">Восстановить</key>
+		<key name="menu.tools.db.restore.tt">Восстановить содержимое БД из выбранной копии</key>
+		<key name="menu.tools.db.uninstall">Снести</key>
+		<key name="menu.tools.db.uninstall.tt">Удалить установленную БД вместе с данными</key>
+		<key name="menu.tools.settings">Настройки</key>
+		<key name="menu.tools.settings.tt">Настройки приложения</key>
+		<key name="menu.tools.languages">Язык</key>
+		<key name="menu.tools.languages.tt">Язык приложения</key>
+		<key name="menu.help">Справка</key>
+		<key name="menu.help.tt">Справка по приложения</key>
+		<key name="menu.help.guide">Руководство</key>
+		<key name="menu.help.guide.tt">Руководство пользователя</key>
+		<key name="menu.help.update">Обновить приложения</key>
+		<key name="menu.help.update.tt">Обновить код приложения</key>
+		<key name="menu.help.about">О программе...</key>
+		<key name="menu.help.about.tt">Информация о приложении</key>
+		
+<!-- Локализация для настроек -->
+		<key name="settings.title">Настройки приложения</key>
+		<key name="settings.title.tt">Настройка параметров приложения</key>
+		<key name="settings.title.help">Заполните требуемые поля и нажмите клавишу "OK"</key>
+		<key name="settings.action.test">Тест</key>
+		<key name="settings.action.test.tt">Тест соединения с базой данных</key>
+		<key name="settings.driver">Драйвер JDBC</key>
+		<key name="settings.driver.tt">Местоположение драйвера JDBC</key>
+		<key name="settings.connectionstring">Строка соединения</key>
+		<key name="settings.connectionstring.tt">Строка соединения с БД для драйвера</key>
+		<key name="settings.user">Имя пользователя</key>
+		<key name="settings.user.tt">Имя пользоваеля в БД</key>
+		
+		<key name="settings.illegal.driver">Выбранный архив [%1$s] не является JDBC драйвером или не поддерживает строку соединения [%2$s]</key>
+		<key name="settings.database.error">Ошибка базы данных: %1$s</key>
+		<key name="settings.io.error">Ошибка ввода/вывода: %1$s</key>
+		<key name="settings.test.ok">Соединение успешно: %1$s</key>
+		
+<!-- Локализация для запроса пароля -->
+		<key name="askpassword.title">Пароль к базе данных</key>
+		<key name="askpassword.title.tt">Запрос пароля для соединения с вашей базой данных</key>
+		<key name="askpassword.title.help">Введита пароль для соединения с вашей базой данных</key>
+		<key name="askpassword.password">Введите пароль</key>
+		<key name="askpassword.password.tt">Введите пароль для соединения с вашей базой данных</key>
+		
+<!-- Локализация для менеджера БД -->
+		<key name="dbmanager.message.clear">Структура БД не создана</key>
+		<key name="dbmanager.message.corrupted">Структура БД повреждена</key>
+		<key name="dbmanager.message.old">Структура БД требует обновления</key>
+		<key name="dbmanager.message.ok">Структура БД правильная</key>
+		
+<!-- Локализация для навигатора -->
+		<key name="tree.insert.child">Вставить "дочку"</key>
+		<key name="tree.insert.child.tt">Вставить доччерний узел</key>
+		<key name="tree.insert.image">Вставить изображение</key>
+		<key name="tree.insert.image.tt">Вставить изображение из файла</key>
+		<key name="tree.insert.clipboard">Вставить из буфера</key>
+		<key name="tree.insert.clipboard.tt">Вставить изображение из буфера</key>
+		<key name="tree.edit">Исправить</key>
+		<key name="tree.edit.tt">Редактировать содержимое узла</key>
+		<key name="tree.remove.subtree">Удалить поддерево</key>
+		<key name="tree.remove.subtree.tt">Удалить текущую и все подчиненные узлы дерева</key>
+		
+		<key name="navigator.confirm.remove.title">Подтвердите удаление</key>
+		<key name="navigator.confirm.remove.message">Вы уверены, что хотите удалить выбранный узел дерева и все его подчиненные узлы?</key>
+		
+<!-- Локализация для редактора дерева -->
+		<key name="treeitem.title">Узел дерева</key>
+		<key name="treeitem.title.tt">Редактирование узла дерева</key>
+		<key name="treeitem.title.help">Отредактируйте узел дерева</key>
+		<key name="treeitem.name">Имя узла</key>
+		<key name="treeitem.name.tt">Произвольное имя узла дерева</key>
+		<key name="treeitem.comment">Комментарий</key>
+		<key name="treeitem.comment.tt">Любой комментарий к узлу</key>
+
+<!-- Локализация для редактора картинки -->
+		<key name="imageitem.title">Описание изображения</key>
+		<key name="imageitem.title.tt">Редактирование описания изображения</key>
+		<key name="imageitem.title.help">Отредактируйте описание изображения</key>
+		<key name="imageitem.comment">Комментарий</key>
+		<key name="imageitem.comment.tt">Любой комментарий к изображению</key>
+		
+	</lang>	
+</localization>

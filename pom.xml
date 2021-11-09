@@ -47,6 +47,11 @@
 			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
+  		<dependency>
+			<groupId>com.github.chav1961</groupId>
+			<artifactId>purelib</artifactId>
+			<version>0.0.5</version>
+		</dependency>		
 	</dependencies>
 
  	<distributionManagement>
@@ -157,4 +162,5 @@
 				</configuration>
             </plugin>
 		</plugins>
-	</build></project>
+	</build>
+</project>

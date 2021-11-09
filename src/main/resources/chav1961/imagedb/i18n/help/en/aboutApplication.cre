@@ -1,0 +1,6 @@
+=== The next Norton Commander clone
+
+Main difference of the clone is support of the different file system. There is no more difference with other
+clones functionality. The next goal to developing the application was testing my [[https://github.com/chav1961/purelib|Pure Library]]
+(bugs, usability, simplicity etc). Hope, that the second didn't damage the first 
+{{root:chav1961.fsyscommander.Application!smile.png|}}  
