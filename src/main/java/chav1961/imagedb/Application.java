@@ -31,12 +31,15 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 
 import chav1961.imagedb.db.DbManager;
 import chav1961.imagedb.dialogs.AskPassword;
 import chav1961.imagedb.dialogs.Settings;
 import chav1961.imagedb.screen.Navigator;
+import chav1961.imagedb.screen.SearchPanel;
+import chav1961.imagedb.screen.SearchPanel.SearchResult;
 import chav1961.purelib.basic.ArgParser;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
@@ -61,6 +64,7 @@ import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
+import chav1961.purelib.ui.swing.useful.JSimpleSplash;
 import chav1961.purelib.ui.swing.useful.JStateString;
 import chav1961.purelib.ui.swing.useful.JSystemTray;
 
@@ -91,6 +95,7 @@ public class Application extends JFrame implements LocaleChangeListener {
 	private SimpleURLClassLoader			classLoader = null;
 	private Connection						conn = null;
 	private Navigator						navigator = null;
+	private SearchPanel						searchPanel = null;
 	
 	public Application(final ContentMetadataInterface xda, final int helpPort, final Localizer parentLocalizer, final LoggerFacade logger, final CountDownLatch latch) throws NullPointerException, IllegalArgumentException, EnvironmentException, IOException, FlowException, SyntaxException, PreparationException, ContentException {
 		if (xda == null) {
@@ -131,9 +136,9 @@ public class Application extends JFrame implements LocaleChangeListener {
 			SwingUtils.assignActionListeners(this.trayMenu,this);
 			
 			background.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
-			getContentPane().add(this.menu,BorderLayout.NORTH);
-			getContentPane().add(background,BorderLayout.CENTER);
-			getContentPane().add(stateString,BorderLayout.SOUTH);
+			getContentPane().add(this.menu, BorderLayout.NORTH);
+			getContentPane().add(background, BorderLayout.CENTER);
+			getContentPane().add(stateString, BorderLayout.SOUTH);
 
 			SwingUtils.assignExitMethod4MainWindow(this,()->exitApplication());
 			SwingUtils.centerMainWindow(this,0.75f);
@@ -152,6 +157,9 @@ public class Application extends JFrame implements LocaleChangeListener {
 		SwingUtils.refreshLocale(menu, oldLocale, newLocale);
 		if (navigator != null) {
 			SwingUtils.refreshLocale(navigator, oldLocale, newLocale);
+		}
+		if (searchPanel != null) {
+			SwingUtils.refreshLocale(searchPanel, oldLocale, newLocale);
 		}
 	}
 
@@ -255,6 +263,11 @@ public class Application extends JFrame implements LocaleChangeListener {
 		conn = null;
 		classLoader.close();
 		classLoader = null;
+		if (searchPanel != null) {
+			getContentPane().remove(searchPanel);
+			pack();
+			searchPanel = null;
+		}
 		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.file.connect")).setEnabled(true);
 		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.file.disconnect")).setEnabled(false);
 		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.search")).setEnabled(false);
@@ -289,6 +302,15 @@ public class Application extends JFrame implements LocaleChangeListener {
 	
 	@OnAction("action:/tools.search")
 	private void search() {
+		try{getContentPane().add(searchPanel = new SearchPanel(localizer, stateString, conn, (p)->{
+				getContentPane().remove(p);
+				searchPanel = null;
+				pack();
+			}, (r) ->select(r)), BorderLayout.EAST);
+			pack();
+		} catch (LocalizationException e) {
+			stateString.message(Severity.error, e.getLocalizedMessage(), e);
+		}
 	}
 	
 	@OnAction("action:/tools.db.install")
@@ -365,6 +387,19 @@ public class Application extends JFrame implements LocaleChangeListener {
 		localizer.setCurrentLocale(SupportedLanguages.valueOf(langs.get("lang")[0]).getLocale());
 	}
 
+	private void select(final SearchResult sr) {
+		switch (sr.location) {
+			case IN_IMAGE_COMMENT	:
+				navigator.selectImage(sr.id);
+				break;
+			case IN_TREE_NAME : case IN_TREE_COMMENT :
+				navigator.selectTree(sr.id);
+				break;
+			default:
+				break;
+		}
+	}
+	
 	private void fillLocalizedStrings(Locale oldLocale, Locale newLocale) throws LocalizationException {
 		setTitle(localizer.getValue(KEY_TITLE_APPLICATION));
 	}
@@ -379,34 +414,40 @@ public class Application extends JFrame implements LocaleChangeListener {
 												,NanoServiceFactory.NANOSERVICE_CREOLE_EPILOGUE_URI, Application.class.getResource("epilog.cre").toString() 
 											));
 		
-		try(final InputStream				is = Application.class.getResourceAsStream("application.xml");
-			final NanoServiceFactory		service = new NanoServiceFactory(PureLibSettings.CURRENT_LOGGER,props);
-			final LoggerFacade				logger = PureLibSettings.CURRENT_LOGGER) {
-			final ContentMetadataInterface	xda = ContentModelFactory.forXmlDescription(is);
-			final CountDownLatch			latch = new CountDownLatch(1);
-			final Application				app = new Application(xda,parser.getValue(ARG_HELP_PORT,int.class),PureLibSettings.PURELIB_LOCALIZER,logger,latch);
-
-			if (SystemTray.isSupported()) {
-				try(final JSystemTray		tray = new JSystemTray(LocalizerFactory.getLocalizer(xda.getRoot().getLocalizerAssociated()), "Image Database", app.getClass().getResource("tray.png").toURI(), KEY_TITLE_APPLICATION, app.trayMenu)) {
-					final ActionListener	al = (e)->{
-												app.setVisible(!app.isVisible());
-											};
-
-					tray.addActionListener(al);
+		try(final JSimpleSplash					jss = new JSimpleSplash(Application.class.getResource("splash.png"));) {
+			jss.start("...");
+			
+			try(final InputStream				is = Application.class.getResourceAsStream("application.xml");
+				final NanoServiceFactory		service = new NanoServiceFactory(PureLibSettings.CURRENT_LOGGER,props);
+				final LoggerFacade				logger = PureLibSettings.CURRENT_LOGGER) {
+				final ContentMetadataInterface	xda = ContentModelFactory.forXmlDescription(is);
+				final CountDownLatch			latch = new CountDownLatch(1);
+				final Application				app = new Application(xda,parser.getValue(ARG_HELP_PORT,int.class),PureLibSettings.PURELIB_LOCALIZER,logger,latch);
+	
+				if (SystemTray.isSupported()) {
+					try(final JSystemTray		tray = new JSystemTray(LocalizerFactory.getLocalizer(xda.getRoot().getLocalizerAssociated()), "Image Database", app.getClass().getResource("tray.png").toURI(), KEY_TITLE_APPLICATION, app.trayMenu)) {
+						final ActionListener	al = (e)->{
+													app.setVisible(!app.isVisible());
+												};
+	
+						tray.addActionListener(al);
+						service.start();
+						app.setVisible(true);
+						jss.end();
+						latch.await();
+						service.stop();
+						tray.removeActionListener(al);
+					}
+				}
+				else {
 					service.start();
 					app.setVisible(true);
+					jss.end();
 					latch.await();
 					service.stop();
-					tray.removeActionListener(al);
 				}
+			} catch (InterruptedException e) {
 			}
-			else {
-				service.start();
-				app.setVisible(true);
-				latch.await();
-				service.stop();
-			}
-		} catch (InterruptedException e) {
 		}
 	}
 

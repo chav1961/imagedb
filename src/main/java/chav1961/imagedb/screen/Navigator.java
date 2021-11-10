@@ -1,24 +1,27 @@
 package chav1961.imagedb.screen;
 
 
+
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,8 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimerTask;
+import java.util.function.Function;
 
 import javax.imageio.ImageIO;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -38,11 +45,14 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -51,7 +61,6 @@ import chav1961.imagedb.dialogs.ImageItem;
 import chav1961.imagedb.dialogs.TreeItem;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
-import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -60,34 +69,47 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
-import chav1961.purelib.ui.swing.useful.JFileItemDescriptor;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
-import chav1961.purelib.ui.swing.useful.JFileTree;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 import chav1961.purelib.ui.swing.useful.JLocalizedOptionPane;
-import chav1961.purelib.ui.swing.useful.LocalizedFormatter;
 
 public class Navigator extends JSplitPane implements LocaleChangeListener {
-	private static final long 				serialVersionUID = 5699595320863149294L;
-	public static final String				KEY_CONFIRM_REMOVE_TITLE = "navigator.confirm.remove.title";
-	public static final String				KEY_CONFIRM_REMOVE_MESSAGE = "navigator.confirm.remove.message";
+	private static final long 					serialVersionUID = 5699595320863149294L;
+	public static final String					KEY_CONFIRM_REMOVE_TITLE = "navigator.confirm.remove.title";
+	public static final String					KEY_CONFIRM_REMOVE_MESSAGE_TREE = "navigator.confirm.remove.message.tree";
+	public static final String					KEY_CONFIRM_REMOVE_MESSAGE_LIST = "navigator.confirm.remove.message.list";
 	
-	private final Localizer					localizer;
-	private final LoggerFacade				logger;
-	private final Connection				conn;
-	private final ContentMetadataInterface	xda;
-	private final Application				app;
-	private final DefaultMutableTreeNode	root = new DefaultMutableTreeNode(new TreeItem(PureLibSettings.CURRENT_LOGGER, -1,0,"CONTENT:","tree content"));
-	private final DefaultTreeModel			model = new DefaultTreeModel(root);
-	private final JTree						tree = new JTree() {public String getToolTipText(MouseEvent e) {return getTreeToolTipText(e);}};
-	private final JList<ImageItem>		list = new JList<>();
-	private final JPopupMenu				treeMenu;
-	private TimerTask						tt = null;
-	private DefaultMutableTreeNode			currentItem;
-	private long							currentId = -1;
+	private final Localizer						localizer;
+	private final LoggerFacade					logger;
+	private final Connection					conn;
+	private final ContentMetadataInterface		xda;
+	private final Application					app;
+	private final DefaultMutableTreeNode		root = new DefaultMutableTreeNode(new TreeItem(PureLibSettings.CURRENT_LOGGER, -1,0,"CONTENT:","tree content"));
+	private final DefaultTreeModel				model = new DefaultTreeModel(root);
+	private final JTree							tree = new JTree(model) {
+																private static final long serialVersionUID = 1L;
+																@Override
+																public String getToolTipText(MouseEvent e) {
+																	return getTreeToolTipText(e);
+																}
+														};
+	private final DefaultListModel<ImageItem>	listModel = new DefaultListModel<>();
+	private final JList<ImageItem>				list = new JList<>(listModel) {
+																private static final long serialVersionUID = 1L;
+																@Override
+																public String getToolTipText(MouseEvent e) {
+																	return getListToolTipText(e);
+																}
+															};
+	private final JPopupMenu					treeMenu;
+	private final JPopupMenu					newListMenu;
+	private final JPopupMenu					existentListMenu;
+	private TimerTask							tt = null;
+	private DefaultMutableTreeNode				currentItem;
+	private long								currentId = -1;
+	private int									currentImageId = -1;
 
 	public Navigator(final Localizer localizer, final LoggerFacade logger, final Connection conn, final ContentMetadataInterface xda, final Application app) throws SQLException {
 		if (localizer == null) {
@@ -113,7 +135,11 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			this.app = app;
 			
 			this.treeMenu = SwingUtils.toJComponent(xda.byUIPath(URI.create("ui:/model/navigation.top.treemenu")),JPopupMenu.class); 
-			SwingUtils.assignActionListeners(this.treeMenu,this);
+			SwingUtils.assignActionListeners(this.treeMenu, this);
+			this.newListMenu = SwingUtils.toJComponent(xda.byUIPath(URI.create("ui:/model/navigation.top.newimagemenu")),JPopupMenu.class); 
+			SwingUtils.assignActionListeners(this.newListMenu, this);
+			this.existentListMenu = SwingUtils.toJComponent(xda.byUIPath(URI.create("ui:/model/navigation.top.imagemenu")),JPopupMenu.class); 
+			SwingUtils.assignActionListeners(this.existentListMenu, this);
 			
 			tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 			tree.getSelectionModel().addTreeSelectionListener((e)->{
@@ -121,7 +147,10 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 					final TreeItem	item = (TreeItem)((DefaultMutableTreeNode)e.getNewLeadSelectionPath().getLastPathComponent()).getUserObject();
 					
 					restartTimerTask(()->{
-						fillList(item.id);
+						try{fillList(item.id);
+						} catch (SQLException exc) {
+							logger.message(Severity.error, exc.getLocalizedMessage(), exc);
+						}
 					});
 				}
 			});
@@ -167,13 +196,55 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 				@Override public void mouseEntered(MouseEvent e) {}
 				@Override public void mouseExited(MouseEvent e) {}
 			});
-			SwingUtils.assignActionKey(tree, SwingUtils.KS_INSERT, (e)->processKeys(e.getActionCommand()), SwingUtils.ACTION_INSERT);
-			SwingUtils.assignActionKey(tree, SwingUtils.KS_ACCEPT, (e)->processKeys(e.getActionCommand()), SwingUtils.ACTION_ACCEPT);
-			SwingUtils.assignActionKey(tree, SwingUtils.KS_DELETE, (e)->processKeys(e.getActionCommand()), SwingUtils.ACTION_DELETE);
-			SwingUtils.assignActionKey(tree, SwingUtils.KS_CONTEXTMENU, (e)->processKeys(e.getActionCommand()), SwingUtils.ACTION_CONTEXTMENU);
+
+			SwingUtils.assignActionKey(tree, SwingUtils.KS_INSERT, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_INSERT);
+			SwingUtils.assignActionKey(tree, SwingUtils.KS_ACCEPT, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_ACCEPT);
+			SwingUtils.assignActionKey(tree, SwingUtils.KS_DELETE, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_DELETE);
+			SwingUtils.assignActionKey(tree, SwingUtils.KS_CONTEXTMENU, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_CONTEXTMENU);
+			
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			list.setCellRenderer(new DefaultListCellRenderer() {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+					final JLabel	result = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+					result.setText("");
+					result.setBorder(new LineBorder(Color.BLACK));
+					result.setIcon(new ImageIcon(((ImageItem)value).image));
+					return result;
+				}
+			});
+			list.addMouseListener(new MouseListener() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					final int		location = list.locationToIndex(new Point(e.getX(), e.getY()));
+					
+					if (location >= 0) {
+						currentImageId = location;
+						
+						if (e.getButton() == MouseEvent.BUTTON3) {
+							showPopupMenu(currentImageId, listModel.elementAt(currentImageId), e.getX(), e.getY());
+						}
+						else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() >= 2 && currentImageId < listModel.getSize() - 1) {
+							editImage();
+						}
+					}
+				}
+
+				@Override public void mousePressed(MouseEvent e) {}
+				@Override public void mouseReleased(MouseEvent e) {}
+				@Override public void mouseEntered(MouseEvent e) {}
+				@Override public void mouseExited(MouseEvent e) {}
+			});
+
+			SwingUtils.assignActionKey(list, SwingUtils.KS_INSERT, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_INSERT);
+			SwingUtils.assignActionKey(list, SwingUtils.KS_ACCEPT, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_ACCEPT);
+			SwingUtils.assignActionKey(list, SwingUtils.KS_DELETE, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_DELETE);
+			SwingUtils.assignActionKey(list, SwingUtils.KS_CONTEXTMENU, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_CONTEXTMENU);
+			
 			ToolTipManager.sharedInstance().registerComponent(tree);
 	        fillTreeModel(root, conn);
-			tree.setModel(model);
 			tree.requestFocusInWindow();
 			
 			setLeftComponent(new JScrollPane(tree));
@@ -186,7 +257,37 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
 		// TODO Auto-generated method stub
-		
+	}
+
+	public void selectTree(final long id) {
+		walkTree(root,id);
+	}
+
+	public void selectImage(final long id) {
+		try(final Statement	stmt = conn.createStatement();
+			final ResultSet	rs = stmt.executeQuery("select ct_Id from helen.contentimage where ci_Id = "+id)) {
+
+			if (rs.next()) {
+				final long		owner = rs.getLong(1);
+				final TimerTask	temp = tt;
+				
+				selectTree(owner);
+				if (temp != null) {
+					temp.cancel();
+				}
+				fillList(owner);
+
+				for (int index = 0, maxIndex = listModel.getSize(); index < maxIndex; index++) {
+					if (listModel.elementAt(index).id == id) {
+						list.ensureIndexIsVisible(index);
+						list.setSelectedIndex(index);
+						break;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			logger.message(Severity.error, e.getLocalizedMessage(), e);
+		}
 	}
 	
 	private String getTreeToolTipText(final MouseEvent event) {
@@ -207,6 +308,19 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 		}
 	}
 
+	private String getListToolTipText(final MouseEvent event) {
+		final int		location = list.locationToIndex(new Point(event.getX(), event.getY()));
+		
+		if (location >= 0) {
+			final ImageItem		item = listModel.elementAt(location);
+			
+			return item.comment; 
+		}
+		else {
+			return null;
+		}
+	}
+	
 	@OnAction("action:/tree.insertchild")
 	private void insertChild() {
 		try(final Statement	stmt = conn.createStatement()) {
@@ -229,18 +343,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 
 	@OnAction("action:/tree.insertimage")
 	private void insertImage() {
-		try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create("fsys:file:/"))) {
-			for (String item : JFileSelectionDialog.select((Frame)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS, FilterCallback.of("Image files", "*.png"))) {
-				try(final FileSystemInterface	file = fsi.open(item);
-					final InputStream			is = file.read()) {
-					
-					insertImage(ImageIO.read(is));
-					return;
-				}
-			}
-		} catch (IOException | LocalizationException e) {
-			logger.message(Severity.error, e.getLocalizedMessage(), e);
-		}
+		withImage((img)->{insertImage(img); return null;});
 	}
 
 	@OnAction("action:/tree.insertclipboard")
@@ -254,9 +357,39 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	}
 
 	private void insertImage(final BufferedImage image) {
-		ImageObserver	io = (img, infoflags, x, y, width, height)->false;
-		
-		System.err.println("Image: "+image.getWidth(io)+"/"+image.getHeight(io));
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			
+			ImageIO.write(image, "png", baos);
+			
+			try(final PreparedStatement	ps = conn.prepareStatement("insert into helen.contentimage(ci_Id, ct_Id, ci_Comment, ci_Image) values (?, ?, ?, ?)")) {
+				ps.setLong(1, getUniqueId(conn));
+				ps.setLong(2, currentId);
+				ps.setString(3, "New image");
+				ps.setBinaryStream(4, new ByteArrayInputStream(baos.toByteArray()));
+				ps.executeUpdate();
+			}
+			fillList(currentId);
+		} catch (SQLException | IOException e) {
+			logger.message(Severity.error, e.getLocalizedMessage(), e);
+		}
+	}
+
+	private void updateImage(final BufferedImage image) {
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			final ImageItem				ii = listModel.elementAt(currentImageId);
+			
+			ii.image = image;
+			ImageIO.write(image, "png", baos);
+			
+			try(final PreparedStatement	ps = conn.prepareStatement("update helen.contentimage set ci_Image = ? where ci_Id = ?")) {
+				ps.setBinaryStream(1, new ByteArrayInputStream(baos.toByteArray()));
+				ps.setLong(2, ii.id);
+				ps.executeUpdate();
+			}
+			listModel.set(currentImageId, ii);
+		} catch (SQLException | IOException e) {
+			logger.message(Severity.error, e.getLocalizedMessage(), e);
+		}
 	}
 	
 	@OnAction("action:/tree.edit")
@@ -280,7 +413,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 
 	@OnAction("action:/tree.remove.subtree")
 	private void removeSubtree() {
-		try{if (new JLocalizedOptionPane(localizer).confirm(this, KEY_CONFIRM_REMOVE_MESSAGE, KEY_CONFIRM_REMOVE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+		try{if (new JLocalizedOptionPane(localizer).confirm(this, KEY_CONFIRM_REMOVE_MESSAGE_TREE, KEY_CONFIRM_REMOVE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 				try(final PreparedStatement	ps = conn.prepareStatement("delete from helen.contenttree where ct_Id = ?")) {
 					final List<Long>		ids = new ArrayList<>();
 					
@@ -290,6 +423,83 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 						ps.executeUpdate();
 					}
 					model.removeNodeFromParent(currentItem);
+				}
+			}
+		} catch (SQLException | LocalizationException exc) {
+			logger.message(Severity.error, exc.getLocalizedMessage(), exc);
+		}
+	}
+
+	@OnAction("action:/list.insertimage")
+	private void insertImageList() {
+		withImage((img)->{insertImage(img); return null;});
+	}	
+	
+	@OnAction("action:/list.insertclipboard")
+	private void insertClipboardList() {
+		try{final Clipboard 	clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		
+			insertImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+		} catch (UnsupportedFlavorException | IOException e) {
+			logger.message(Severity.error, e.getLocalizedMessage(), e);
+		}
+	}	
+
+	@OnAction("action:/list.copytoclipboard")
+	private void copyImageList() {
+		final Clipboard 		clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		final BufferedImage		bi = listModel.elementAt(currentImageId).image;
+		final Transferable		t = new Transferable() {
+										@Override public boolean isDataFlavorSupported(final DataFlavor flavor) {return flavor == DataFlavor.imageFlavor;}
+										@Override public DataFlavor[] getTransferDataFlavors() {return new DataFlavor[] {DataFlavor.imageFlavor};}
+										@Override public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {return flavor == DataFlavor.imageFlavor ? bi : null;}
+									};
+		final ClipboardOwner	co = new ClipboardOwner() {
+									@Override public void lostOwnership(Clipboard clipboard, Transferable contents) {}
+								};
+
+		clipboard.setContents(t, co);
+	}	
+	
+	@OnAction("action:/list.updateimage")
+	private void updateImageList() {
+		withImage((img)->{updateImage(img); return null;});
+	}	
+
+	@OnAction("action:/list.updatefromclipboard")
+	private void updateClipboardList() {
+		try{final Clipboard 	clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		
+			updateImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+		} catch (UnsupportedFlavorException | IOException e) {
+			logger.message(Severity.error, e.getLocalizedMessage(), e);
+		}
+	}	
+	
+	@OnAction("action:/list.edit")
+	private void editImage() {
+		try{final ImageItem	ii = listModel.elementAt(currentImageId).clone();
+		
+			if (app.ask(ii, 200, 70)) {
+				try(final PreparedStatement	ps = conn.prepareStatement("update helen.contentimage set ci_Comment = ? where ci_Id = ?")) {
+					ps.setString(1, ii.comment);
+					ps.setLong(2, ii.id);
+					ps.executeUpdate();
+				}
+				listModel.set(currentImageId, ii);
+			}
+		} catch (SQLException e) {
+			logger.message(Severity.error, e.getLocalizedMessage(), e);
+		}
+	}
+	
+	@OnAction("action:/list.remove")
+	private void removeList() {
+		try{if (new JLocalizedOptionPane(localizer).confirm(this, KEY_CONFIRM_REMOVE_MESSAGE_LIST, KEY_CONFIRM_REMOVE_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+				try(final PreparedStatement	ps = conn.prepareStatement("delete from helen.contentimage where ci_Id = ?")) {
+					ps.setLong(1, listModel.elementAt(currentImageId).id);
+					ps.executeUpdate();
+					listModel.remove(currentImageId);
 				}
 			}
 		} catch (SQLException | LocalizationException exc) {
@@ -312,8 +522,38 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			treeMenu.show(tree, x, y);
 		}
 	}
+
+	private void showPopupMenu(final int index, final ImageItem value, final int x, final int y) {
+		final Clipboard 	clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		
+		if (index == listModel.getSize() - 1) {
+			((JMenuItem)SwingUtils.findComponentByName(newListMenu, "list.insert.clipboard")).setEnabled(clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor));
+			
+			newListMenu.show(list, x, y);
+		}
+		else {
+			((JMenuItem)SwingUtils.findComponentByName(existentListMenu, "list.update.clipboard")).setEnabled(clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor));
+			
+			existentListMenu.show(list, x, y);
+		}
+	}
+
+	private void withImage(final Function<BufferedImage, Void> func) {
+		try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create("fsys:file:/"))) {
+			for (String item : JFileSelectionDialog.select((Frame)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE | JFileSelectionDialog.OPTIONS_FILE_MUST_EXISTS, FilterCallback.of("Image files", "*.png"))) {
+				try(final FileSystemInterface	file = fsi.open(item);
+					final InputStream			is = file.read()) {
+					
+					func.apply(ImageIO.read(is));
+					return;
+				}
+			}
+		} catch (IOException | LocalizationException e) {
+			logger.message(Severity.error, e.getLocalizedMessage(), e);
+		}
+	}
 	
-	private void processKeys(final String actionCommand) {
+	private void processTreeKeys(final String actionCommand) {
 		final TreePath	path = tree.getSelectionModel().getSelectionPath();
 		
 		if (path != null) {
@@ -339,6 +579,31 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 		}		
 	}
 
+	private void processListKeys(final String actionCommand) {
+		if (!list.isSelectionEmpty()) {
+			final int	index = list.getSelectionModel().getAnchorSelectionIndex();
+			currentImageId = index;
+			
+			switch (actionCommand) {
+				case SwingUtils.ACTION_INSERT 		:
+					insertImageList();
+					break;
+				case SwingUtils.ACTION_ACCEPT 		:
+					editImage();
+					break;
+				case SwingUtils.ACTION_DELETE		:
+					removeList();
+					break;
+				case SwingUtils.ACTION_CONTEXTMENU	:
+					final Point		p = list.indexToLocation(index);
+					final Rectangle	r = list.getCellBounds(index, index);
+					
+					showPopupMenu(currentImageId, listModel.elementAt(currentImageId), p.x + r.width/2, p.y + r.height/2);
+					break;
+			}
+		}		
+	}
+	
 	private void fillTreeModel(final DefaultMutableTreeNode root, final Connection conn) throws SQLException {
 		root.removeAllChildren();
 		try(final Statement	stmt = conn.createStatement();
@@ -352,7 +617,6 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			fillTreeModel(root, ps, -1L);
 		}
 	}
-
 
 	private void fillTreeModel(final DefaultMutableTreeNode root, final PreparedStatement ps, final long key) throws SQLException {
 		final List<TreeItem>	temp = new ArrayList<>();
@@ -371,8 +635,25 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 		}
 	}
 
-	private void fillList(final long ownerId) {
-		System.err.println("Fill list for: "+ownerId);
+	private void fillList(final long ownerId) throws SQLException {
+		final List<ImageItem>	result = new ArrayList<>();
+
+		listModel.removeAllElements();
+		if (ownerId >= 0) {
+			try(final Statement	stmt = conn.createStatement();
+				final ResultSet	rs = stmt.executeQuery("select * from helen.contentimage where ct_Id = "+ownerId+" order by ci_Id")) {
+				
+				while (rs.next()) {
+					final BufferedImage	bi = ImageIO.read(rs.getBinaryStream("ci_Image"));
+					
+					result.add(new ImageItem(logger, rs.getLong("ci_Id"), rs.getLong("ct_Id"), rs.getString("ci_Comment"), bi));
+				}
+				result.add(new ImageItem(logger, -1L, ownerId, "Add new image", ImageIO.read(this.getClass().getResourceAsStream("addImage.png"))));
+			} catch (IOException e) {
+				throw new SQLException(e.getLocalizedMessage(), e);
+			}
+			listModel.addAll(result);
+		}
 	}
 
 	private void restartTimerTask(final Runnable runnable) {
@@ -382,6 +663,22 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 		}
 		tt = SimpleTimerTask.start(()->{runnable.run(); tt = null;}, 300);
 	}
+
+	private void walkTree(final DefaultMutableTreeNode node, final long id) {
+		if (((TreeItem)node.getUserObject()).id == id) {
+			  final TreeNode[] 	nodes = model.getPathToRoot(node);
+              final TreePath 	tpath = new TreePath(nodes);
+              
+              tree.scrollPathToVisible(tpath);
+              tree.setSelectionPath(tpath);			
+		}
+		else {
+			for (int index = 0, maxIndex = node.getChildCount(); index < maxIndex; index++) {
+				walkTree((DefaultMutableTreeNode)node.getChildAt(index), id);
+			}
+		}
+	}
+
 	
 	private long getUniqueId(final Connection conn) throws SQLException {
 		try(final Statement	stmt = conn.createStatement();

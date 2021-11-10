@@ -92,8 +92,24 @@
 		<key name="tree.remove.subtree">Remove subtree</key>
 		<key name="tree.remove.subtree.tt">Remove current node and all children</key>
 
+		<key name="list.insert.image">Insert image</key>
+		<key name="list.insert.image.tt">Insert image from file</key>
+		<key name="list.insert.clipboard">Insert from clipboard</key>
+		<key name="list.insert.clipboard.tt">Insert image from clipboard</key>
+		<key name="list.copy.clipboard">Copy to clipboard</key>
+		<key name="list.copy.clipboard.tt">Copy current image to clipboard</key>
+		<key name="list.update.clipboard">Update from clipboard</key>
+		<key name="list.update.clipboard.tt">Replace image content from clipboard</key>
+		<key name="list.update.image">Update from file</key>
+		<key name="list.update.image.tt">Update image content from file</key>
+		<key name="list.edit">Edit</key>
+		<key name="list.edit.tt">Edit image comment</key>
+		<key name="list.remove">Remove image</key>
+		<key name="list.remove.tt">Remove current image</key>
+
 		<key name="navigator.confirm.remove.title">Confirm remove subtree</key>
-		<key name="navigator.confirm.remove.message">Are you sure to remove this node and all it's children?</key>
+		<key name="navigator.confirm.remove.message.tree">Are you sure to remove this node and all it's children?</key>
+		<key name="navigator.confirm.remove.message.list">Are you sure to remove image selected?</key>
 
 <!-- Localization for tree editor -->
 		<key name="treeitem.title">Tree editor</key>
@@ -110,6 +126,15 @@
 		<key name="imageitem.title.help">Edit image description</key>
 		<key name="imageitem.comment">Comment</key>
 		<key name="imageitem.comment.tt">Any comment</key>
+
+<!-- Localization for search screen -->
+		<key name="search.caption">Search images...</key>				
+		<key name="search.close.tt">Close search window</key>
+		<key name="search.enter">Search string:</key>
+		<key name="search.enter.tt">Enter text fragments to search into comments</key>
+		<key name="search.find.tt">Search images by search string</key>
+		<key name="search.notfound">No any data found</key>				
+		<key name="search.found">Found %1$s items</key>
 		
 	</lang>
 	<lang name="ru">
@@ -194,7 +219,7 @@
 		
 <!-- Локализация для навигатора -->
 		<key name="tree.insert.child">Вставить "дочку"</key>
-		<key name="tree.insert.child.tt">Вставить доччерний узел</key>
+		<key name="tree.insert.child.tt">Вставить дочерний узел</key>
 		<key name="tree.insert.image">Вставить изображение</key>
 		<key name="tree.insert.image.tt">Вставить изображение из файла</key>
 		<key name="tree.insert.clipboard">Вставить из буфера</key>
@@ -204,8 +229,24 @@
 		<key name="tree.remove.subtree">Удалить поддерево</key>
 		<key name="tree.remove.subtree.tt">Удалить текущую и все подчиненные узлы дерева</key>
 		
+		<key name="list.insert.image">Вставить изображение</key>
+		<key name="list.insert.image.tt">Вставить изображение из файла</key>
+		<key name="list.insert.clipboard">Вставить из буфера</key>
+		<key name="list.insert.clipboard.tt">Вставить изображение из буфера</key>
+		<key name="list.copy.clipboard">Скопироватья в буфер</key>
+		<key name="list.copy.clipboard.tt">Скопировать текущее изображение в буфер</key>
+		<key name="list.update.clipboard">Обновить из буфера</key>
+		<key name="list.update.clipboard.tt">Обновить текущее изображение из буфера</key>
+		<key name="list.update.image">Обновить из файла</key>
+		<key name="list.update.image.tt">Обновить текущее изображение из файла</key>
+		<key name="list.edit">Исправить</key>
+		<key name="list.edit.tt">Редактировать комментарий к изображению</key>
+		<key name="list.remove">Удалить</key>
+		<key name="list.remove.tt">Удалить текущее изображение</key>
+		
 		<key name="navigator.confirm.remove.title">Подтвердите удаление</key>
-		<key name="navigator.confirm.remove.message">Вы уверены, что хотите удалить выбранный узел дерева и все его подчиненные узлы?</key>
+		<key name="navigator.confirm.remove.message.tree">Вы уверены, что хотите удалить выбранный узел дерева и все его подчиненные узлы?</key>
+		<key name="navigator.confirm.remove.message.list">Вы уверены, что хотите удалить выбранное изображение?</key>
 		
 <!-- Локализация для редактора дерева -->
 		<key name="treeitem.title">Узел дерева</key>
@@ -222,6 +263,15 @@
 		<key name="imageitem.title.help">Отредактируйте описание изображения</key>
 		<key name="imageitem.comment">Комментарий</key>
 		<key name="imageitem.comment.tt">Любой комментарий к изображению</key>
+		
+<!-- Локализация для экрана поиска -->
+		<key name="search.caption">Поиск изображений</key>				
+		<key name="search.close.tt">Закрыть окно поиска</key>
+		<key name="search.enter">Строка поиска:</key>
+		<key name="search.enter.tt">Введите фрагмент текста для поиска в комментариях</key>
+		<key name="search.find.tt">Найти изображения по строке поиска</key>
+		<key name="search.notfound">По запросу ничего не найдено</key>				
+		<key name="search.found">ПО запросу найдено %1$s элементов</key>
 		
 	</lang>	
 </localization>

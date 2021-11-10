@@ -1,1 +1,4 @@
 /target/
+/.imagedb.props
+/.project
+/.classpath

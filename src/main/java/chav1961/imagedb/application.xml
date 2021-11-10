@@ -52,4 +52,16 @@
 		<app:item name="tree.edit" caption="tree.edit" tooltip="tree.edit.tt" action="tree.edit"/>
 		<app:item name="tree.remove.subtree" caption="tree.remove.subtree" tooltip="tree.remove.subtree.tt" action="tree.remove.subtree"/>
 	</app:menu>
+	<app:menu id="newimagemenu">
+		<app:item name="list.insert.image" caption="list.insert.image" tooltip="list.insert.image.tt" action="list.insertimage"/>
+		<app:item name="list.insert.clipboard" caption="list.insert.clipboard" tooltip="list.insert.clipboard.tt" action="list.insertclipboard"/>
+	</app:menu>
+	<app:menu id="imagemenu">
+		<app:item name="list.copy.clipboard" caption="list.copy.clipboard" tooltip="list.copy.clipboard.tt" action="list.copytoclipboard"/>
+		<app:item name="list.update.clipboard" caption="list.update.clipboard" tooltip="list.update.clipboard.tt" action="list.updatefromclipboard"/>
+		<app:item name="list.update.image" caption="list.update.image" tooltip="list.update.image.tt" action="list.updateimage"/>
+		<app:separator/>
+		<app:item name="list.edit" caption="list.edit" tooltip="list.edit.tt" action="list.edit"/>
+		<app:item name="list.remove" caption="list.remove" tooltip="list.remove.tt" action="list.remove"/>
+	</app:menu>
 </app:root>
