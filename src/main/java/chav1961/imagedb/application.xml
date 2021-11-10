@@ -56,6 +56,12 @@
 		<app:item name="list.insert.image" caption="list.insert.image" tooltip="list.insert.image.tt" action="list.insertimage"/>
 		<app:item name="list.insert.clipboard" caption="list.insert.clipboard" tooltip="list.insert.clipboard.tt" action="list.insertclipboard"/>
 	</app:menu>
+	<app:keyset id="imagemenu.keyset">
+		<app:key code="INSERT" action="tree.insertchild"/>
+		<app:key code="V" ctrl="true" action="tree.insertclipboard"/>
+		<app:key code="ENTER" ctrl="true" action="tree.edit"/>
+		<app:key code="DELETE" action="tree.remove.subtree"/>
+	</app:keyset>		
 	<app:menu id="imagemenu">
 		<app:item name="list.copy.clipboard" caption="list.copy.clipboard" tooltip="list.copy.clipboard.tt" action="list.copytoclipboard"/>
 		<app:item name="list.update.clipboard" caption="list.update.clipboard" tooltip="list.update.clipboard.tt" action="list.updatefromclipboard"/>
@@ -64,4 +70,11 @@
 		<app:item name="list.edit" caption="list.edit" tooltip="list.edit.tt" action="list.edit"/>
 		<app:item name="list.remove" caption="list.remove" tooltip="list.remove.tt" action="list.remove"/>
 	</app:menu>
+	<app:keyset id="imagemenu.keyset">
+		<app:key code="C" ctrl="true" action="list.copytoclipboard"/>
+		<app:key code="V" ctrl="true" action="list.updatefromclipboard"/>
+		<app:key code="INSERT" action="list.updateimage"/>
+		<app:key code="ENTER" ctrl="true" action="list.edit"/>
+		<app:key code="DELETE" action="list.remove"/>
+	</app:keyset>		
 </app:root>

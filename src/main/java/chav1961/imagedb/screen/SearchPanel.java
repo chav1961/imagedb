@@ -8,6 +8,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -103,7 +105,20 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 					label.setText(sr.text);
 					return label;
 				}
-			});		
+			});
+			list.addMouseListener(new MouseListener() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+						gotoItem();
+					}
+				}
+				
+				@Override public void mouseReleased(MouseEvent e) {}
+				@Override public void mousePressed(MouseEvent e) {}
+				@Override public void mouseExited(MouseEvent e) {}
+				@Override public void mouseEntered(MouseEvent e) {}
+			});
 			
 			final JPanel	caption = new JPanel(new BorderLayout()), close = new JPanel(), search = new JPanel(), top = new JPanel(new GridLayout(2,1));  
 			

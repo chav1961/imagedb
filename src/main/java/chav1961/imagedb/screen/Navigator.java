@@ -13,12 +13,27 @@ import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -45,13 +60,16 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -88,7 +106,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	private final Application					app;
 	private final DefaultMutableTreeNode		root = new DefaultMutableTreeNode(new TreeItem(PureLibSettings.CURRENT_LOGGER, -1,0,"CONTENT:","tree content"));
 	private final DefaultTreeModel				model = new DefaultTreeModel(root);
-	private final JTree							tree = new JTree(model) {
+	private final JTree							tree = new JDroppableTree(model) {
 																private static final long serialVersionUID = 1L;
 																@Override
 																public String getToolTipText(MouseEvent e) {
@@ -96,7 +114,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 																}
 														};
 	private final DefaultListModel<ImageItem>	listModel = new DefaultListModel<>();
-	private final JList<ImageItem>				list = new JList<>(listModel) {
+	private final JList<ImageItem>				list = new JDroppableList<>(listModel) {
 																private static final long serialVersionUID = 1L;
 																@Override
 																public String getToolTipText(MouseEvent e) {
@@ -200,6 +218,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			SwingUtils.assignActionKey(tree, SwingUtils.KS_INSERT, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_INSERT);
 			SwingUtils.assignActionKey(tree, SwingUtils.KS_ACCEPT, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_ACCEPT);
 			SwingUtils.assignActionKey(tree, SwingUtils.KS_DELETE, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_DELETE);
+			SwingUtils.assignActionKey(tree, SwingUtils.KS_PASTE, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_PASTE);
 			SwingUtils.assignActionKey(tree, SwingUtils.KS_CONTEXTMENU, (e)->processTreeKeys(e.getActionCommand()), SwingUtils.ACTION_CONTEXTMENU);
 			
 			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -241,6 +260,8 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			SwingUtils.assignActionKey(list, SwingUtils.KS_INSERT, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_INSERT);
 			SwingUtils.assignActionKey(list, SwingUtils.KS_ACCEPT, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_ACCEPT);
 			SwingUtils.assignActionKey(list, SwingUtils.KS_DELETE, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_DELETE);
+			SwingUtils.assignActionKey(list, SwingUtils.KS_COPY, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_COPY);
+			SwingUtils.assignActionKey(list, SwingUtils.KS_PASTE, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_PASTE);
 			SwingUtils.assignActionKey(list, SwingUtils.KS_CONTEXTMENU, (e)->processListKeys(e.getActionCommand()), SwingUtils.ACTION_CONTEXTMENU);
 			
 			ToolTipManager.sharedInstance().registerComponent(tree);
@@ -251,6 +272,11 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			setRightComponent(new JScrollPane(list));
 			setBorder(new EtchedBorder(EtchedBorder.LOWERED));
 			setDividerLocation(250);
+			
+			SwingUtilities.invokeLater(()->{
+				tree.grabFocus();
+				tree.setSelectionRow(0);
+			});
 		}
 	}
 
@@ -350,7 +376,9 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	private void insertClipboard() {
 		try{final Clipboard 	clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		
-			insertImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+			if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+				insertImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+			}
 		} catch (UnsupportedFlavorException | IOException e) {
 			logger.message(Severity.error, e.getLocalizedMessage(), e);
 		}
@@ -438,8 +466,10 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	@OnAction("action:/list.insertclipboard")
 	private void insertClipboardList() {
 		try{final Clipboard 	clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		
-			insertImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+
+			if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+				insertImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+			}
 		} catch (UnsupportedFlavorException | IOException e) {
 			logger.message(Severity.error, e.getLocalizedMessage(), e);
 		}
@@ -470,7 +500,9 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	private void updateClipboardList() {
 		try{final Clipboard 	clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		
-			updateImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+			if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+				updateImage((BufferedImage)clipboard.getData(DataFlavor.imageFlavor));
+			}
 		} catch (UnsupportedFlavorException | IOException e) {
 			logger.message(Severity.error, e.getLocalizedMessage(), e);
 		}
@@ -564,6 +596,9 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 				case SwingUtils.ACTION_INSERT 		:
 					insertChild();
 					break;
+				case SwingUtils.ACTION_PASTE		:
+					insertClipboard();
+					break;
 				case SwingUtils.ACTION_ACCEPT 		:
 					edit();
 					break;
@@ -589,10 +624,24 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 					insertImageList();
 					break;
 				case SwingUtils.ACTION_ACCEPT 		:
-					editImage();
+					if (currentImageId < listModel.getSize() - 1) {
+						editImage();
+					}
 					break;
 				case SwingUtils.ACTION_DELETE		:
-					removeList();
+					if (currentImageId < listModel.getSize() - 1) {
+						removeList();
+					}
+					break;
+				case SwingUtils.ACTION_COPY		:
+					if (currentImageId < listModel.getSize() - 1) {
+						copyImageList();
+					}
+					break;
+				case SwingUtils.ACTION_PASTE		:
+					if (currentImageId < listModel.getSize() - 1) {
+						updateClipboardList();
+					}
 					break;
 				case SwingUtils.ACTION_CONTEXTMENU	:
 					final Point		p = list.indexToLocation(index);
@@ -690,6 +739,133 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			else {
 				return 0;
 			}
+		}
+	}
+	
+
+	private class JDroppableTree extends JTree implements DropTargetListener, DragGestureListener, DragSourceListener {
+		private static final long 	serialVersionUID = 1L;
+
+		private final DropTarget	dropTarget = new DropTarget(this, DnDConstants.ACTION_COPY_OR_MOVE, this); 
+		private final DragSource 	dragSource = DragSource.getDefaultDragSource();
+		
+		public JDroppableTree(final TreeModel model) {
+			super(model);
+			dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
+		}
+		
+		@Override public void dragGestureRecognized(DragGestureEvent dge) {}
+		@Override public void dragOver(DropTargetDragEvent dtde) {}
+		@Override public void dropActionChanged(DropTargetDragEvent dtde) {}
+		@Override public void dragExit(DropTargetEvent dte) {}
+		@Override public void dragEnter(DragSourceDragEvent dsde) {}
+		@Override public void dragOver(DragSourceDragEvent dsde) {}
+		@Override public void dropActionChanged(DragSourceDragEvent dsde) {}
+		@Override public void dragExit(DragSourceEvent dse) {}
+		@Override public void dragDropEnd(DragSourceDropEvent dsde) {}
+		
+		@Override
+		public void dragEnter(DropTargetDragEvent dtde) {
+			if (dtde.getCurrentDataFlavorsAsList().contains(DataFlavor.javaFileListFlavor)) {
+				dtde.acceptDrag (DnDConstants.ACTION_COPY_OR_MOVE);
+			}
+		}
+
+		@Override
+		public void drop(final DropTargetDropEvent dtde) {
+			try{final Transferable 	tr = dtde.getTransferable();
+			
+                if (tr.isDataFlavorSupported (DataFlavor.javaFileListFlavor)) {
+                    dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+                    
+					final TreePath	path = tree.getPathForLocation(dtde.getLocation().x, dtde.getLocation().y);
+					
+					if (path != null) {
+						currentItem = (DefaultMutableTreeNode)path.getLastPathComponent();
+						currentId = ((TreeItem)currentItem.getUserObject()).id;
+						
+	                    for (File f : (List<File>)tr.getTransferData(DataFlavor.javaFileListFlavor)) {
+	                    	if (f.getName().endsWith(".png")) {
+	                    		try(final InputStream	is = new FileInputStream(f)) {
+	                    			
+	                   				insertImage(ImageIO.read(is));
+	                    		}
+	                    	}
+	                    }
+	                    dtde.getDropTargetContext().dropComplete(true);
+					}
+					else {
+	                	dtde.rejectDrop();
+					}
+                } 
+                else {
+                	dtde.rejectDrop();
+                }
+            } catch (IOException | UnsupportedFlavorException ufe) {
+            	dtde.rejectDrop();
+            }			
+		}
+	}
+	
+	private class JDroppableList<T> extends JList<T> implements DropTargetListener, DragGestureListener, DragSourceListener {
+		private static final long 	serialVersionUID = 1L;
+
+		private final DropTarget	dropTarget = new DropTarget(this, DnDConstants.ACTION_COPY_OR_MOVE, this); 
+		private final DragSource 	dragSource = DragSource.getDefaultDragSource();
+	     
+		public JDroppableList(ListModel<T> dataModel) {
+			super(dataModel);
+			dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
+		}
+
+		@Override public void dragGestureRecognized(DragGestureEvent dge) {}
+		@Override public void dragOver(DropTargetDragEvent dtde) {}
+		@Override public void dropActionChanged(DropTargetDragEvent dtde) {}
+		@Override public void dragExit(DropTargetEvent dte) {}
+		@Override public void dragEnter(DragSourceDragEvent dsde) {}
+		@Override public void dragOver(DragSourceDragEvent dsde) {}
+		@Override public void dropActionChanged(DragSourceDragEvent dsde) {}
+		@Override public void dragExit(DragSourceEvent dse) {}
+		@Override public void dragDropEnd(DragSourceDropEvent dsde) {}
+		
+		@Override
+		public void dragEnter(DropTargetDragEvent dtde) {
+			if (dtde.getCurrentDataFlavorsAsList().contains(DataFlavor.javaFileListFlavor)) {
+				dtde.acceptDrag (DnDConstants.ACTION_COPY_OR_MOVE);
+			}
+		}
+
+		@Override
+		public void drop(final DropTargetDropEvent dtde) {
+			try{final Transferable 	tr = dtde.getTransferable();
+			
+                if (tr.isDataFlavorSupported (DataFlavor.javaFileListFlavor)) {
+                    dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+                    
+					currentImageId = locationToIndex(dtde.getLocation());
+					final boolean	updateContent = currentImageId < getModel().getSize() - 1;
+                    
+                    for (File f : (List<File>)tr.getTransferData(DataFlavor.javaFileListFlavor)) {
+                    	if (f.getName().endsWith(".png")) {
+                    		try(final InputStream	is = new FileInputStream(f)) {
+                    			
+                    			if (updateContent) {
+                    				updateImage(ImageIO.read(is));
+                    			}
+                    			else {
+                    				insertImage(ImageIO.read(is));
+                    			}
+                    		}
+                    	}
+                    }
+                    dtde.getDropTargetContext().dropComplete(true);
+                } 
+                else {
+                	dtde.rejectDrop();
+                }
+            } catch (IOException | UnsupportedFlavorException ufe) {
+            	dtde.rejectDrop();
+            }			
 		}
 	}
 }
