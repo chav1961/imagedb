@@ -2,3 +2,4 @@
 /.imagedb.props
 /.project
 /.classpath
+/dependency-reduced-pom.xml
