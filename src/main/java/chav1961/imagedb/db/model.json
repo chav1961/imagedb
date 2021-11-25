@@ -78,7 +78,7 @@
 						 "labelId":"helen.contenttree.ct_Name",
 						 "tooltipId":"helen.contenttree.ct_Name.tt",
 						 "appUri":"app:column:/helen.contenttree/ct_Name?seq=3&type=TEXT",
-						 "relUri":"ct_Parent",
+						 "relUri":"ct_Name",
 					 	 "format":"m"
 					},
 					 {"name":"ct_Comment",
@@ -86,8 +86,16 @@
 						 "labelId":"helen.contenttree.ct_Comment",
 						 "tooltipId":"helen.contenttree.ct_Comment.tt",
 						 "appUri":"app:column:/helen.contenttree/ct_Comment?seq=4&type=TEXT",
-						 "relUri":"ct_Parent",
+						 "relUri":"ct_Comment",
 					 	 "format":"m"
+					},
+					 {"name":"ct_Tags",
+						 "type":"java.lang.String",
+						 "labelId":"helen.contenttree.ct_Tags",
+						 "tooltipId":"helen.contenttree.ct_Tags.tt",
+						 "appUri":"app:column:/helen.contenttree/ct_Tags?seq=4&type=TEXT",
+						 "relUri":"ct_Tags",
+					 	 "format":""
 					}
 				 ]
 			},
@@ -130,6 +138,14 @@
 						 "appUri":"app:column:/helen.contentimage/ci_Image?seq=4&type=BYTEA",
 						 "relUri":"ci_Image",
 					 	 "format":"m"
+					},
+					 {"name":"ci_Tags",
+						 "type":"java.lang.String",
+						 "labelId":"helen.contentimage.ci_Tags",
+						 "tooltipId":"helen.contentimage.ci_Tags.tt",
+						 "appUri":"app:column:/helen.contentimage/ci_Tags?seq=5&type=TEXT",
+						 "relUri":"ci_Tags",
+					 	 "format":""
 					}
 				 ]
 			}

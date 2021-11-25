@@ -100,7 +100,7 @@ public class Settings implements FormManager<Object,Settings>, ModuleAccessor {
 								if (!passwordFilled) {
 									final AskPassword	ap = new AskPassword(logger);
 									
-									if (app.ask(ap, 200, 60)) {
+									if (app.ask(ap, 200, 40)) {
 										props.setProperty("password", new String(ap.password));
 										passwordFilled = true;
 									}

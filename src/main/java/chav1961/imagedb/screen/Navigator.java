@@ -104,7 +104,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	private final Connection					conn;
 	private final ContentMetadataInterface		xda;
 	private final Application					app;
-	private final DefaultMutableTreeNode		root = new DefaultMutableTreeNode(new TreeItem(PureLibSettings.CURRENT_LOGGER, -1,0,"CONTENT:","tree content"));
+	private final DefaultMutableTreeNode		root = new DefaultMutableTreeNode(new TreeItem(PureLibSettings.CURRENT_LOGGER, -1,0,"CONTENT:","tree content",""));
 	private final DefaultTreeModel				model = new DefaultTreeModel(root);
 	private final JTree							tree = new JDroppableTree(model) {
 																private static final long serialVersionUID = 1L;
@@ -167,6 +167,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 					restartTimerTask(()->{
 						try{fillList(item.id);
 						} catch (SQLException exc) {
+							exc.printStackTrace();
 							logger.message(Severity.error, exc.getLocalizedMessage(), exc);
 						}
 					});
@@ -291,7 +292,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 
 	public void selectImage(final long id) {
 		try(final Statement	stmt = conn.createStatement();
-			final ResultSet	rs = stmt.executeQuery("select ct_Id from helen.contentimage where ci_Id = "+id)) {
+			final ResultSet	rs = stmt.executeQuery("select ct_Id from helen.contentimage where ci_Id = "+id + " order by ct_id")) {
 
 			if (rs.next()) {
 				final long		owner = rs.getLong(1);
@@ -353,9 +354,9 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 			final long		uniqueId = getUniqueId(conn);
 			
 			stmt.executeUpdate("insert into helen.contenttree (ct_Id, ct_Parent, ct_Name, ct_Comment) values ("+uniqueId+", "+currentId+", 'child', 'new child')");
-			try(final ResultSet	rs = stmt.executeQuery("select * from helen.contenttree where ct_Id = "+uniqueId)) {
+			try(final ResultSet	rs = stmt.executeQuery("select * from helen.contenttree where ct_Id = "+uniqueId+" order by ct_id")) {
 				if (rs.next()) {
-					final TreeItem					item = new TreeItem(logger, rs.getLong("ct_Id"), rs.getLong("ct_Parent"), rs.getString("ct_Name"), rs.getString("ct_Comment"));
+					final TreeItem					item = new TreeItem(logger, rs.getLong("ct_Id"), rs.getLong("ct_Parent"), rs.getString("ct_Name"), rs.getString("ct_Comment"), rs.getString("ct_Tags"));
 					final DefaultMutableTreeNode	child = new DefaultMutableTreeNode(item);
 					
 					model.insertNodeInto(child, currentItem, currentItem.getChildCount());
@@ -424,11 +425,12 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	private void edit() {
 		try{final TreeItem	ti = ((TreeItem)currentItem.getUserObject()).clone();
 			
-			if (app.ask(ti, 200, 70)) {
-				try(final PreparedStatement	ps = conn.prepareStatement("update helen.contenttree set ct_Name = ?, ct_Comment = ? where ct_Id = ?")) {
+			if (app.ask(ti, 450, 250)) {
+				try(final PreparedStatement	ps = conn.prepareStatement("update helen.contenttree set ct_Name = ?, ct_Comment = ?, ct_Tags = ? where ct_Id = ?")) {
 					ps.setString(1, ti.name);
 					ps.setString(2, ti.comment);
-					ps.setLong(3, ti.id);
+					ps.setString(3, ti.tags);
+					ps.setLong(4, ti.id);
 					ps.executeUpdate();
 				}
 				currentItem.setUserObject(ti);
@@ -512,10 +514,11 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	private void editImage() {
 		try{final ImageItem	ii = listModel.elementAt(currentImageId).clone();
 		
-			if (app.ask(ii, 200, 70)) {
-				try(final PreparedStatement	ps = conn.prepareStatement("update helen.contentimage set ci_Comment = ? where ci_Id = ?")) {
+			if (app.ask(ii, 450, 220)) {
+				try(final PreparedStatement	ps = conn.prepareStatement("update helen.contentimage set ci_Comment = ?, ci_Tags = ? where ci_Id = ?")) {
 					ps.setString(1, ii.comment);
-					ps.setLong(2, ii.id);
+					ps.setString(2, ii.tags);
+					ps.setLong(3, ii.id);
 					ps.executeUpdate();
 				}
 				listModel.set(currentImageId, ii);
@@ -656,13 +659,13 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 	private void fillTreeModel(final DefaultMutableTreeNode root, final Connection conn) throws SQLException {
 		root.removeAllChildren();
 		try(final Statement	stmt = conn.createStatement();
-			final ResultSet	rs = stmt.executeQuery("select * from helen.contenttree")) {
+			final ResultSet	rs = stmt.executeQuery("select * from helen.contenttree order by ct_id")) {
 
 			if (!rs.next()) {
 				stmt.execute("insert into helen.contenttree (ct_Id, ct_Parent, ct_Name, ct_Comment) values (nextval('helen.contentseq'), -1, 'ROOT', '')");
 			}
 		}
-		try (final PreparedStatement	ps = conn.prepareStatement("select * from helen.contenttree where ct_Parent = ?")) {
+		try (final PreparedStatement	ps = conn.prepareStatement("select * from helen.contenttree where ct_Parent = ? order by ct_id")) {
 			fillTreeModel(root, ps, -1L);
 		}
 	}
@@ -673,7 +676,7 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 		ps.setLong(1, key);
 		try(final ResultSet	rs = ps.executeQuery()) {
 			while (rs.next()) {
-				temp.add(new TreeItem(logger, rs.getLong("ct_Id"), rs.getLong("ct_Parent"), rs.getString("ct_Name"), rs.getString("ct_Comment")));
+				temp.add(0,new TreeItem(logger, rs.getLong("ct_Id"), rs.getLong("ct_Parent"), rs.getString("ct_Name"), rs.getString("ct_Comment"), rs.getString("ct_Tags")));
 			}
 		}
 		for (TreeItem item : temp) {
@@ -695,9 +698,9 @@ public class Navigator extends JSplitPane implements LocaleChangeListener {
 				while (rs.next()) {
 					final BufferedImage	bi = ImageIO.read(rs.getBinaryStream("ci_Image"));
 					
-					result.add(new ImageItem(logger, rs.getLong("ci_Id"), rs.getLong("ct_Id"), rs.getString("ci_Comment"), bi));
+					result.add(new ImageItem(logger, rs.getLong("ci_Id"), rs.getLong("ct_Id"), rs.getString("ci_Comment"), bi, rs.getString("ci_Tags")));
 				}
-				result.add(new ImageItem(logger, -1L, ownerId, "Add new image", ImageIO.read(this.getClass().getResourceAsStream("addImage.png"))));
+				result.add(new ImageItem(logger, -1L, ownerId, "Add new image", ImageIO.read(this.getClass().getResourceAsStream("addImage.png")), ""));
 			} catch (IOException e) {
 				throw new SQLException(e.getLocalizedMessage(), e);
 			}

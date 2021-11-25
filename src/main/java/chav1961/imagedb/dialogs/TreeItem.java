@@ -20,16 +20,21 @@ public class TreeItem implements FormManager<Object,TreeItem>, Cloneable {
 	@Format("30ms")
 	public String	name;
 
+	@LocaleResource(value="treeitem.tags",tooltip="treeitem.tags.tt")
+	@Format("30s")
+	public String	tags;
+	
 	@LocaleResource(value="treeitem.comment",tooltip="treeitem.comment.tt")
-	@Format("30ms")
+	@Format("30*10ms")
 	public String	comment;
 	
-	public TreeItem(final LoggerFacade logger, final long id, final long parent, final String name, final String comment) {
+	public TreeItem(final LoggerFacade logger, final long id, final long parent, final String name, final String comment, final String tags) {
 		this.logger = logger;
 		this.id = id;
 		this.parent = parent;
 		this.name = name;
 		this.comment = comment;
+		this.tags = tags;
 	}
 
 	@Override
@@ -38,7 +43,7 @@ public class TreeItem implements FormManager<Object,TreeItem>, Cloneable {
 	}
 
 	@Override
-	public RefreshMode onField(TreeItem inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
+	public RefreshMode onField(final TreeItem inst, final Object id, final String fieldName, final Object oldValue, final boolean beforeCommit) throws FlowException, LocalizationException {
 		return RefreshMode.DEFAULT;
 	}
 
@@ -51,7 +56,7 @@ public class TreeItem implements FormManager<Object,TreeItem>, Cloneable {
 	public TreeItem clone() {
 		try{return (TreeItem)super.clone();
 		} catch (CloneNotSupportedException e) {
-			return new TreeItem(logger, id, parent, name, comment);
+			return new TreeItem(logger, id, parent, name, comment, tags);
 		}
 	}
 }

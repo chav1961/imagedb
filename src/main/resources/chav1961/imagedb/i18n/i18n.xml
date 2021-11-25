@@ -24,6 +24,10 @@
 		<key name="menu.tools.tt">Application tools</key>
 		<key name="menu.tools.search">Search</key>
 		<key name="menu.tools.search.tt">Search images by comments</key>
+		<key name="menu.tools.filter">Filter</key>
+		<key name="menu.tools.filter.tt">Filter content by tags</key>
+		<key name="menu.tools.clearfilter">Clear filter</key>
+		<key name="menu.tools.clearfilter.tt">Clear current filter</key>
 		<key name="menu.tools.db">Manage database</key>
 		<key name="menu.tools.db.tt">Manage database content</key>
 		<key name="menu.tools.db.install">Install</key>
@@ -117,6 +121,8 @@
 		<key name="treeitem.title.help">Edit tree node</key>
 		<key name="treeitem.name">Node name</key>
 		<key name="treeitem.name.tt">Any node name</key>
+		<key name="treeitem.tags">Tags</key>
+		<key name="treeitem.tags.tt">Node tags</key>
 		<key name="treeitem.comment">Comment</key>
 		<key name="treeitem.comment.tt">Any comment</key>
 
@@ -124,6 +130,8 @@
 		<key name="imageitem.title">Image editor</key>
 		<key name="imageitem.title.tt">Edit image description</key>
 		<key name="imageitem.title.help">Edit image description</key>
+		<key name="imageitem.tags">Tags</key>
+		<key name="imageitem.tags.tt">Image tags</key>
 		<key name="imageitem.comment">Comment</key>
 		<key name="imageitem.comment.tt">Any comment</key>
 
@@ -135,6 +143,12 @@
 		<key name="search.find.tt">Search images by search string</key>
 		<key name="search.notfound">No any data found</key>				
 		<key name="search.found">Found %1$s items</key>
+
+<!-- Localization for filter screen -->
+		<key name="filteritem.title">Filter</key>
+		<key name="filteritem.title.tt">Filter content by tags</key>
+		<key name="filteritem.tags">Tags:</key>
+		<key name="filteritem.tags.tt">Tags have known at the current time in the system</key>
 		
 	</lang>
 	<lang name="ru">
@@ -161,6 +175,10 @@
 		<key name="menu.tools.tt">Инструментирование приложения</key>
 		<key name="menu.tools.search">Поиск</key>
 		<key name="menu.tools.search.tt">Поиск картинок по комментариям</key>
+		<key name="menu.tools.filter">Фильтр</key>
+		<key name="menu.tools.filter.tt">Фильтровать содержимое по тегам</key>
+		<key name="menu.tools.clearfilter">Сбросить фильтр</key>
+		<key name="menu.tools.clearfilter.tt">Отключить фильтрацию содержимого</key>
 		<key name="menu.tools.db">Работа с БД</key>
 		<key name="menu.tools.db.tt">Манипуляции содержимым базы данных</key>
 		<key name="menu.tools.db.install">Установить</key>
@@ -254,6 +272,8 @@
 		<key name="treeitem.title.help">Отредактируйте узел дерева</key>
 		<key name="treeitem.name">Имя узла</key>
 		<key name="treeitem.name.tt">Произвольное имя узла дерева</key>
+		<key name="treeitem.tags">Теги</key>
+		<key name="treeitem.tags.tt">Теги (ключевые слова)</key>
 		<key name="treeitem.comment">Комментарий</key>
 		<key name="treeitem.comment.tt">Любой комментарий к узлу</key>
 
@@ -261,6 +281,8 @@
 		<key name="imageitem.title">Описание изображения</key>
 		<key name="imageitem.title.tt">Редактирование описания изображения</key>
 		<key name="imageitem.title.help">Отредактируйте описание изображения</key>
+		<key name="imageitem.tags">Теги</key>
+		<key name="imageitem.tags.tt">Теги (ключевые слова)</key>
 		<key name="imageitem.comment">Комментарий</key>
 		<key name="imageitem.comment.tt">Любой комментарий к изображению</key>
 		
@@ -272,6 +294,13 @@
 		<key name="search.find.tt">Найти изображения по строке поиска</key>
 		<key name="search.notfound">По запросу ничего не найдено</key>				
 		<key name="search.found">ПО запросу найдено %1$s элементов</key>
+		
+<!-- Локализация для экрана фильтров -->
+		<key name="filteritem.title">Фильтр</key>
+		<key name="filteritem.title.tt">Фильтр содержимого по тегам</key>
+		<key name="filteritem.tags">Теги:</key>
+		<key name="filteritem.tags.tt">Теги, сушествуюшие в системе на данный момент</key>
+		
 		
 	</lang>	
 </localization>

@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -28,16 +29,26 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
+import chav1961.imagedb.db.DbUtil;
+import chav1961.imagedb.dialogs.FilterItem;
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.ContentModelFactory;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.ui.inner.InternalConstants;
+import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.interfaces.ItemAndSelection;
+import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.useful.JCloseButton;
 
@@ -60,10 +71,13 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 	private final JLabel							searchLabel = new JLabel("");
 	private final JTextField						searchString = new JTextField();
 	private final JButton							searchButton = new JButton(InternalConstants.ICON_SEARCH);
+	private final JToggleButton						facetButton = new JToggleButton(InternalConstants.ICON_CHECK);
 	private final DefaultListModel<SearchResult>	listModel = new DefaultListModel<>();
 	private final JList<SearchResult>				list = new JList<>(listModel);
+	private final FilterItem						filter;
+	private final AutoBuiltForm<FilterItem>			abf;
 	
-	public SearchPanel(final Localizer localizer, final LoggerFacade logger, final Connection conn, final Consumer<SearchPanel> closeCallback, final Consumer<SearchResult> selectCallback) throws NullPointerException, LocalizationException {
+	public SearchPanel(final Localizer localizer, final LoggerFacade logger, final Connection conn, final Consumer<SearchPanel> closeCallback, final Consumer<SearchResult> selectCallback) throws NullPointerException, LocalizationException, SQLException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
@@ -84,15 +98,20 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 			this.logger = logger;
 			this.conn = conn;
 			this.selectCallback = selectCallback;
+			this.filter = new FilterItem(logger, ItemAndSelection.of(DbUtil.extractUniqueTags(conn)));
+			this.abf = buildFacets(filter, 100, 200);
 			
 			closeButton.addActionListener((e)->closeCallback.accept(SearchPanel.this));
-			
 			setLayout(new BorderLayout());
 	
 			closeButton.setPreferredSize(new Dimension(InternalConstants.ICON_CLOSE.getIconWidth(),InternalConstants.ICON_CLOSE.getIconHeight()));
 			searchString.setColumns(30);
+			
 			searchButton.setPreferredSize(new Dimension(InternalConstants.ICON_SEARCH.getIconWidth()+4,InternalConstants.ICON_SEARCH.getIconHeight()+4));
 			searchButton.addActionListener((e)->fillList(searchString.getText()));
+			facetButton.setPreferredSize(new Dimension(InternalConstants.ICON_CHECK.getIconWidth()+4,InternalConstants.ICON_CHECK.getIconHeight()+4));
+			facetButton.addActionListener((e)->showFacet(facetButton.isSelected()));
+			showFacet(false);
 		
 			list.setCellRenderer(new DefaultListCellRenderer() {
 				private static final long serialVersionUID = 1L;
@@ -129,11 +148,13 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 			search.add(searchLabel);
 			search.add(searchString);
 			search.add(searchButton);
+			search.add(facetButton);
 			top.add(caption);
 			top.add(search);
 			
 			add(top, BorderLayout.NORTH);
 			add(new JScrollPane(list), BorderLayout.CENTER);
+			add(abf, BorderLayout.SOUTH);
 			
 			SwingUtils.assignActionKey(this, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e)->fillList(searchString.getText()), SwingUtils.ACTION_ACCEPT);
 			SwingUtils.assignActionKey(this, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->closeCallback.accept(SearchPanel.this), SwingUtils.ACTION_EXIT);
@@ -149,6 +170,31 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 		fillLocalizedStrings();
 	}
 
+	private void showFacet(final boolean visible) {
+		if (visible) {
+			try{this.filter.join(ItemAndSelection.of(DbUtil.extractUniqueTags(conn)));
+			} catch (SQLException e) {
+				logger.message(Severity.error,e.getLocalizedMessage());
+			}
+		}
+		this.abf.setVisible(visible);
+	}
+
+	public <T> AutoBuiltForm<T> buildFacets(final T instance, final int width, final int height) {
+		try{final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(instance.getClass());
+			final AutoBuiltForm<T>			abf = new AutoBuiltForm<T>(mdi,localizer,PureLibSettings.INTERNAL_LOADER,instance,(FormManager<Object,T>)instance);
+			
+			for (Module m : abf.getUnnamedModules()) {
+				instance.getClass().getModule().addExports(instance.getClass().getPackageName(),m);
+			}
+			abf.setPreferredSize(new Dimension(width,height));
+			return abf;
+		} catch (LocalizationException | ContentException e) {
+			logger.message(Severity.error,e.getLocalizedMessage());
+			return null;
+		} 
+	}
+	
 	private void fillList(final String text) {
 		final String	truncated = text.trim();
 		

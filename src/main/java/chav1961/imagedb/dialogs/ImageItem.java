@@ -17,18 +17,23 @@ public class ImageItem implements FormManager<Object,ImageItem>, Cloneable {
 	public final LoggerFacade	logger;
 	public long					id;
 	public long					owner;
+
+	@LocaleResource(value="imageitem.tags",tooltip="imageitem.tags.tt")
+	@Format("30s")
+	public String	tags;
 	
 	@LocaleResource(value="imageitem.comment",tooltip="imageitem.comment.tt")
-	@Format("30ms")
+	@Format("30*10ms")
 	public String				comment;
 	public BufferedImage		image;
 	
-	public ImageItem(final LoggerFacade logger, final long id, final long owner, final String comment, final BufferedImage image) {
+	public ImageItem(final LoggerFacade logger, final long id, final long owner, final String comment, final BufferedImage image, final String tags) {
 		this.logger = logger;
 		this.id = id;
 		this.owner = owner;
 		this.comment = comment;
 		this.image = image;
+		this.tags = tags;
 	}
 
 	@Override
@@ -37,7 +42,7 @@ public class ImageItem implements FormManager<Object,ImageItem>, Cloneable {
 	}
 
 	@Override
-	public RefreshMode onField(ImageItem inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
+	public RefreshMode onField(final ImageItem inst, final Object id, final String fieldName, final Object oldValue, final boolean beforeCommit) throws FlowException, LocalizationException {
 		return RefreshMode.DEFAULT;
 	}
 
@@ -50,7 +55,7 @@ public class ImageItem implements FormManager<Object,ImageItem>, Cloneable {
 	public ImageItem clone() {
 		try{return (ImageItem)super.clone();
 		} catch (CloneNotSupportedException e) {
-			return new ImageItem(logger, id, owner, comment, image);
+			return new ImageItem(logger, id, owner, comment, image, tags);
 		}
 	}
 }

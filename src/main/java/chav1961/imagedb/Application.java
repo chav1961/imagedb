@@ -3,6 +3,7 @@ package chav1961.imagedb;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.awt.SystemTray;
 import java.awt.event.ActionListener;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,7 +26,9 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.zip.ZipOutputStream;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
@@ -35,7 +39,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 
 import chav1961.imagedb.db.DbManager;
+import chav1961.imagedb.db.DbUtil;
 import chav1961.imagedb.dialogs.AskPassword;
+import chav1961.imagedb.dialogs.FilterItem;
 import chav1961.imagedb.dialogs.Settings;
 import chav1961.imagedb.screen.Navigator;
 import chav1961.imagedb.screen.SearchPanel;
@@ -53,6 +59,8 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.fsys.FileSystemFactory;
+import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
@@ -61,12 +69,15 @@ import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
 import chav1961.purelib.ui.swing.useful.JSimpleSplash;
 import chav1961.purelib.ui.swing.useful.JStateString;
 import chav1961.purelib.ui.swing.useful.JSystemTray;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 
 public class Application extends JFrame implements LocaleChangeListener {
 	private static final long 				serialVersionUID = -2663340436788182341L;
@@ -83,7 +94,6 @@ public class Application extends JFrame implements LocaleChangeListener {
 	
 	public final Localizer			 		localizer;
 	private final ContentMetadataInterface	xda;
-	private final LoggerFacade				logger;
 	private final SubstitutableProperties	props = new SubstitutableProperties();
 	private final JMenuBar					menu;
 	private final JPopupMenu				trayMenu;
@@ -92,6 +102,7 @@ public class Application extends JFrame implements LocaleChangeListener {
 	private final CountDownLatch			latch;
 	private final JStateString				stateString;
 	private final JLabel					background = new JLabel();
+	private FilterItem						filter = null;
 	private SimpleURLClassLoader			classLoader = null;
 	private Connection						conn = null;
 	private Navigator						navigator = null;
@@ -113,7 +124,6 @@ public class Application extends JFrame implements LocaleChangeListener {
 		else {
 			this.xda = xda;
 			this.localizer = LocalizerFactory.getLocalizer(xda.getRoot().getLocalizerAssociated());
-			this.logger = logger;
 			this.localHelpPort = helpPort;
 			this.latch = latch;
 			this.stateString = new JStateString(this.localizer,10,true);
@@ -145,6 +155,8 @@ public class Application extends JFrame implements LocaleChangeListener {
 
 			((JMenuItem)SwingUtils.findComponentByName(menu, "menu.file.disconnect")).setEnabled(false);
 			((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.search")).setEnabled(false);
+			((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.filter")).setEnabled(false);
+			((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.clearfilter")).setEnabled(false);
 			fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
 			stateString.message(Severity.info, ()->localizer.getValue(KEY_APPLICATION_READY));
 			pack();
@@ -189,9 +201,9 @@ public class Application extends JFrame implements LocaleChangeListener {
 				try{
 					if (drv.acceptsURL(settings.connectionString.toString())) {
 						if (!passwordFilled) {
-							final AskPassword	ap = new AskPassword(logger);
+							final AskPassword	ap = new AskPassword(stateString);
 							
-							if (ask(ap, 200, 50)) {
+							if (ask(ap, 200, 40)) {
 								props.setProperty("password", new String(ap.password));
 								passwordFilled = true;
 							}
@@ -200,6 +212,7 @@ public class Application extends JFrame implements LocaleChangeListener {
 							}
 						}
 						try(final Connection	conn = drv.connect(settings.connectionString.toString(), props)) {
+							conn.setAutoCommit(true);
 							func.apply(conn);
 						}
 						return;
@@ -224,7 +237,7 @@ public class Application extends JFrame implements LocaleChangeListener {
 			try{
 				if (drv.acceptsURL(settings.connectionString.toString())) {
 					if (!passwordFilled) {
-						final AskPassword	ap = new AskPassword(logger);
+						final AskPassword	ap = new AskPassword(stateString);
 						
 						if (ask(ap, 200, 50)) {
 							props.setProperty("password", new String(ap.password));
@@ -244,6 +257,8 @@ public class Application extends JFrame implements LocaleChangeListener {
 					((JMenuItem)SwingUtils.findComponentByName(menu, "menu.file.connect")).setEnabled(false);
 					((JMenuItem)SwingUtils.findComponentByName(menu, "menu.file.disconnect")).setEnabled(true);
 					((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.search")).setEnabled(true);
+					((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.filter")).setEnabled(true);
+					((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.clearfilter")).setEnabled(true);
 					stateString.message(Severity.info, ()->localizer.getValue(KEY_APPLICATION_COMPLETED));
 					return;
 				}
@@ -271,6 +286,8 @@ public class Application extends JFrame implements LocaleChangeListener {
 		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.file.connect")).setEnabled(true);
 		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.file.disconnect")).setEnabled(false);
 		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.search")).setEnabled(false);
+		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.filter")).setEnabled(false);
+		((JMenuItem)SwingUtils.findComponentByName(menu, "menu.tools.clearfilter")).setEnabled(false);
 		stateString.message(Severity.info, ()->localizer.getValue(KEY_APPLICATION_COMPLETED));
 	}
 	
@@ -308,9 +325,30 @@ public class Application extends JFrame implements LocaleChangeListener {
 				pack();
 			}, (r) ->select(r)), BorderLayout.EAST);
 			pack();
-		} catch (LocalizationException e) {
+		} catch (LocalizationException | SQLException e) {
 			stateString.message(Severity.error, e.getLocalizedMessage(), e);
 		}
+	}
+
+	@OnAction("action:/tools.filter")
+	private void filter() {
+		try{if (this.filter == null) {
+				this.filter = new FilterItem(stateString, ItemAndSelection.of(DbUtil.extractUniqueTags(conn)));
+			}
+			final FilterItem	clone = filter.clone();
+			
+			this.filter.join(ItemAndSelection.of(DbUtil.extractUniqueTags(conn)));
+			if (!ask(filter, 200, 200)) {
+				this.filter = clone;
+			}
+		} catch (SQLException e) {
+			stateString.message(Severity.error, e.getLocalizedMessage(), e);
+		}
+	}
+
+	@OnAction("action:/tools.clearfilter")
+	private void clearFilter() {
+		filter = null;
 	}
 	
 	@OnAction("action:/tools.db.install")
@@ -332,7 +370,23 @@ public class Application extends JFrame implements LocaleChangeListener {
 	
 	@OnAction("action:/tools.db.backup")
 	private void dbBackup() {
-		
+		withConnection((conn)->{
+			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create("fsys:file:/"))) {
+				for (String item : JFileSelectionDialog.select((Frame)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_SAVE | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE, FilterCallback.of("ZIP files", "*.zip"))) {
+					try(final FileSystemInterface	file = fsi.open(item.endsWith(".zip") ? item : item+".zip").create();
+						final OutputStream			os = file.write();
+						final ZipOutputStream		zos = new ZipOutputStream(os)) {
+						
+						new DbManager(conn).backupDatabaseByModel(zos);
+						stateString.message(Severity.info, ()->localizer.getValue(KEY_APPLICATION_COMPLETED));
+						break;
+					}
+				}
+			} catch (IOException | SQLException | LocalizationException e) {
+				stateString.message(Severity.error, e.getLocalizedMessage(), e);
+			}
+			return null;
+		});
 	}
 	
 	@OnAction("action:/tools.db.restore")
@@ -453,7 +507,7 @@ public class Application extends JFrame implements LocaleChangeListener {
 
 	private static class ApplicationArgParser extends ArgParser {
 		private static final ArgParser.AbstractArg[]	KEYS = {
-			new IntegerArg(ARG_HELP_PORT, true, "Help port to use for help browser", PureLibSettings.instance().getProperty(PureLibSettings.BUILTIN_HELP_PORT,int.class))
+			new IntegerArg(ARG_HELP_PORT, true, "Help port to use for help browser", 13667)
 		};
 		
 		ApplicationArgParser() {

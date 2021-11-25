@@ -11,6 +11,8 @@
 		</app:submenu>
 		<app:submenu name="menu.tools" caption="menu.tools" tooltip="menu.tools.tt">
 			<app:item name="menu.tools.search" caption="menu.tools.search" tooltip="menu.tools.search.tt" action="tools.search"/>
+			<app:item name="menu.tools.filter" caption="menu.tools.filter" tooltip="menu.tools.filter.tt" action="tools.filter"/>
+			<app:item name="menu.tools.clearfilter" caption="menu.tools.clearfilter" tooltip="menu.tools.clearfilter.tt" action="tools.clearfilter"/>
 			<app:separator/>
 			<app:submenu name="menu.tools.db" caption="menu.tools.db" tooltip="menu.tools.db.tt">
 				<app:item name="menu.tools.db.install" caption="menu.tools.db.install" tooltip="menu.tools.db.install.tt" action="tools.db.install"/>
@@ -34,6 +36,7 @@
 	</app:menu>
 	<app:keyset id="mainmenu.keyset">
 		<app:key code="F" ctrl="true" action="tools.search"/>
+		<app:key code="F" ctrl="true" shift="true" action="tools.filter"/>
 		<app:key code="N" ctrl="true" action="file.connect"/>
 		<app:key code="H" ctrl="true" action="file.hide"/>
 		<app:key code="Q" ctrl="true" action="file.quit"/>

@@ -11,6 +11,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
+import java.util.zip.ZipOutputStream;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -81,6 +82,19 @@ public class DbManager {
 		}
 	}
 
+	public void backupDatabaseByModel(final ZipOutputStream zos) throws SQLException {
+		if (zos == null) {
+			throw new NullPointerException("ZIP output stream can't be null");
+		}
+		else {
+			try{
+				SQLModelUtils.backupDatabaseByModel(conn, loadModel(), zos);
+			} catch (IOException e) {
+				throw new SQLException(e.getLocalizedMessage(), e); 
+			}
+		}
+	}
+	
 	public void removeDatabaseByModel() throws SQLException {
 		try{
 			SQLModelUtils.removeDatabaseByModel(conn, loadModel());
