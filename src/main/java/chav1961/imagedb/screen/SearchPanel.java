@@ -17,8 +17,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.swing.DefaultListModel;
@@ -31,7 +33,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.border.LineBorder;
 
 import chav1961.imagedb.db.DbUtil;
@@ -61,6 +65,7 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 	public static final String			KEY_SEARCH_FIND = "search.find.tt";				
 	public static final String			KEY_SEARCH_NOTFOUND = "search.notfound";				
 	public static final String			KEY_SEARCH_FOUND = "search.found";				
+	public static final String			KEY_SEARCH_TOOLTIP = "search.tooltip";				
 
 	private final Localizer							localizer;
 	private final LoggerFacade						logger;
@@ -73,7 +78,7 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 	private final JButton							searchButton = new JButton(InternalConstants.ICON_SEARCH);
 	private final JToggleButton						facetButton = new JToggleButton(InternalConstants.ICON_CHECK);
 	private final DefaultListModel<SearchResult>	listModel = new DefaultListModel<>();
-	private final JList<SearchResult>				list = new JList<>(listModel);
+	private final JList<SearchResult>				list;
 	private final FilterItem						filter;
 	private final AutoBuiltForm<FilterItem>			abf;
 	
@@ -97,6 +102,7 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 			this.localizer = localizer;
 			this.logger = logger;
 			this.conn = conn;
+			this.list = new JListWithTooltips(localizer, listModel);
 			this.selectCallback = selectCallback;
 			this.filter = new FilterItem(logger, ItemAndSelection.of(DbUtil.extractUniqueTags(conn)));
 			this.abf = buildFacets(filter, 100, 200);
@@ -120,8 +126,20 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 				public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 					final JLabel		label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 					final SearchResult	sr = (SearchResult)value;
-					
-					label.setText(sr.text);
+
+					switch (sr.location) {
+						case IN_IMAGE_COMMENT	:
+							label.setText(sr.comment);
+							break;
+						case IN_TREE_COMMENT	:
+							label.setText(sr.comment);
+							break;
+						case IN_TREE_NAME		:
+							label.setText(sr.name);
+							break;
+						default:
+							break;
+					}
 					return label;
 				}
 			});
@@ -161,6 +179,7 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 			SwingUtils.assignActionKey(list, SwingUtils.KS_ACCEPT, (e)->gotoItem(), SwingUtils.ACTION_ACCEPT);
 			
 			fillLocalizedStrings();
+			ToolTipManager.sharedInstance().registerComponent(list);
 			SwingUtilities.invokeLater(()->searchString.grabFocus());
 		}
 	}
@@ -198,35 +217,49 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 	private void fillList(final String text) {
 		final String	truncated = text.trim();
 		
-		if (!truncated.isEmpty()) {
+		if (!truncated.isEmpty() || abf.isVisible()) {
 			try{final List<SearchResult>	result = new ArrayList<>();
-	
-				try(final PreparedStatement	ps = conn.prepareStatement("select ct_id, ct_Name from helen.contenttree where ct_Name @@ to_tsquery(?)")) {
-					
-					ps.setString(1, truncated);
+				final String[]				selected = ItemAndSelection.extract(true, filter.tags);
+				final Set<Long>				idsFound = new HashSet<>();
+				
+				try(final PreparedStatement	ps = conn.prepareStatement("select ct_id, ct_Name, ct_Comment, ct_Tags from helen.contenttree where " + buildWhere("ct_Name", !truncated.isEmpty(), "ct_Tags", selected.length))) {
+					bindParameters(ps, truncated, selected);
 					try(final ResultSet	rs = ps.executeQuery()) {
 						while (rs.next()) {
-							result.add(new SearchResult(rs.getLong("ct_Id"), SearchResult.Where.IN_TREE_NAME, rs.getString("ct_Name")));
+							final long	id = rs.getLong("ct_Id");
+							
+							if (!idsFound.contains(id)) {
+								idsFound.add(id);
+								result.add(new SearchResult(id, SearchResult.Where.IN_TREE_NAME, rs.getString("ct_Name"), rs.getString("ct_Comment"), rs.getString("ct_Tags")));
+							}
 						}
 					}
 				}
 	
-				try(final PreparedStatement	ps = conn.prepareStatement("select ct_id, ct_Comment from helen.contenttree where ct_Comment @@ to_tsquery(?)")) {
-					
-					ps.setString(1, truncated);
+				try(final PreparedStatement	ps = conn.prepareStatement("select ct_id, ct_Name, ct_Comment, ct_Tags from helen.contenttree where " + buildWhere("ct_Comment", !truncated.isEmpty(), "ct_Tags", selected.length))) {
+					bindParameters(ps, truncated, selected);
 					try(final ResultSet	rs = ps.executeQuery()) {
 						while (rs.next()) {
-							result.add(new SearchResult(rs.getLong("ct_Id"), SearchResult.Where.IN_TREE_COMMENT, rs.getString("ct_Comment")));
+							final long	id = rs.getLong("ct_Id");
+							
+							if (!idsFound.contains(id)) {
+								idsFound.add(id);
+								result.add(new SearchResult(id, SearchResult.Where.IN_TREE_COMMENT, rs.getString("ct_Name"), rs.getString("ct_Comment"), rs.getString("ct_Tags")));
+							}
 						}
 					}
 				}
 	
-				try(final PreparedStatement	ps = conn.prepareStatement("select ci_id, ci_Comment from helen.contentimage where ci_Comment @@ to_tsquery(?)")) {
-					
-					ps.setString(1, truncated);
+				try(final PreparedStatement	ps = conn.prepareStatement("select ci_id, '' as ci_Name, ci_Comment, ci_Tags from helen.contentimage where " + buildWhere("ci_Comment", !truncated.isEmpty(), "ci_Tags", selected.length))) {
+					bindParameters(ps, truncated, selected);
 					try(final ResultSet	rs = ps.executeQuery()) {
 						while (rs.next()) {
-							result.add(new SearchResult(rs.getLong("ci_Id"), SearchResult.Where.IN_IMAGE_COMMENT, rs.getString("ci_Comment")));
+							final long	id = rs.getLong("ci_Id");
+							
+							if (!idsFound.contains(id)) {
+								idsFound.add(id);
+								result.add(new SearchResult(id, SearchResult.Where.IN_IMAGE_COMMENT, rs.getString("ci_Name"), rs.getString("ci_Comment"), rs.getString("ci_Tags")));
+							}
 						}
 					}
 				}
@@ -247,6 +280,39 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 		}
 	}
 
+	private String buildWhere(final String fieldTS, final boolean useTS, final String fieldFacet, final int facetSize) {
+		final StringBuilder	sb = new StringBuilder();
+		
+		if (useTS) {
+			sb.append(fieldTS).append(" @@ to_tsquery(?) ");
+			if (facetSize > 0) {
+				sb.append(" and ");
+			}
+		}
+		if (facetSize > 0) {
+			String	prefix = "";
+			
+			for (int index = 0; index < facetSize; index++) {
+				sb.append(prefix).append("position( ? in ").append(fieldFacet).append(")");
+				
+				prefix = " + ";
+			}
+			sb.append(" > 0");
+		}
+		return sb.toString();
+	}
+
+	private void bindParameters(final PreparedStatement ps, final String valueTS, final String[] valuesFacet) throws SQLException {
+		int		index = 1;
+		
+		if (!valueTS.isEmpty()) {
+			ps.setString(index++, valueTS);
+		}
+		for (String item : valuesFacet) {
+			ps.setString(index++, item);
+		}
+	}
+	
 	private void gotoItem() {
 		if (!list.isSelectionEmpty()) {
 			selectCallback.accept(listModel.getElementAt(list.getSelectedIndex()));
@@ -261,7 +327,7 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 		searchString.setToolTipText(localizer.getValue(KEY_SEARCH_ENTER_TT));
 		searchButton.setToolTipText(localizer.getValue(KEY_SEARCH_FIND));
 	}
-	
+
 	public static class SearchResult {
 		public static enum Where {
 			IN_TREE_NAME, IN_TREE_COMMENT, IN_IMAGE_COMMENT
@@ -269,17 +335,51 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 		
 		public final long	id;
 		public final Where	location;
-		public final String	text;
+		public final String	name;
+		public final String	comment;
+		public final String	tags;
 		
-		public SearchResult(final long id, final Where location, final String text) {
+		public SearchResult(final long id, final Where location, final String name, final String comment, final String tags) {
 			this.id = id;
 			this.location = location;
-			this.text = text;
+			this.name = name;
+			this.comment = comment;
+			this.tags = tags;
 		}
 
 		@Override
 		public String toString() {
-			return "SearchResult [id=" + id + ", location=" + location + ", text=" + text + "]";
+			return "SearchResult [id=" + id + ", location=" + location + ", name=" + name + ", comment=" + comment + ", tags=" + tags + "]";
 		}
 	}
+
+	private static class JListWithTooltips extends JList<SearchResult> {
+		private static final long serialVersionUID = 1L;
+		
+		private final Localizer	localizer;
+		
+		public JListWithTooltips(final Localizer localizer, final ListModel<SearchResult> model) {
+			super(model);
+			this.localizer = localizer;
+		}
+		
+		@Override
+		public String getToolTipText(final MouseEvent event) {
+			final int	index = locationToIndex(event.getPoint());
+			
+			if (index >= 0) {
+				final SearchResult	sr = getModel().getElementAt(index);
+				
+				try{return localizer.getValue(KEY_SEARCH_TOOLTIP, sr.name, sr.comment, sr.tags);
+				} catch (LocalizationException e) {
+					return super.getToolTipText(event);
+				}
+			}
+			else {
+				return super.getToolTipText(event);
+			}
+		}
+		
+	}
+
 }

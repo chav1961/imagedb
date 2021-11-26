@@ -143,6 +143,7 @@
 		<key name="search.find.tt">Search images by search string</key>
 		<key name="search.notfound">No any data found</key>				
 		<key name="search.found">Found %1$s items</key>
+		<key name="search.tooltip">name: %1$s, comment: %2$s, tags: %3$s</key>
 
 <!-- Localization for filter screen -->
 		<key name="filteritem.title">Filter</key>
@@ -293,7 +294,8 @@
 		<key name="search.enter.tt">Введите фрагмент текста для поиска в комментариях</key>
 		<key name="search.find.tt">Найти изображения по строке поиска</key>
 		<key name="search.notfound">По запросу ничего не найдено</key>				
-		<key name="search.found">ПО запросу найдено %1$s элементов</key>
+		<key name="search.found">По запросу найдено %1$s элементов</key>
+		<key name="search.tooltip">Имя: %1$s, комментарий: %2$s, теги: %3$s</key>
 		
 <!-- Локализация для экрана фильтров -->
 		<key name="filteritem.title">Фильтр</key>
