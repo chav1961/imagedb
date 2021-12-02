@@ -59,6 +59,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeKeeper;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
@@ -79,7 +80,7 @@ import chav1961.purelib.ui.swing.useful.JStateString;
 import chav1961.purelib.ui.swing.useful.JSystemTray;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 
-public class Application extends JFrame implements LocaleChangeListener {
+public class Application extends JFrame implements LocaleChangeListener, LoggerFacadeKeeper {
 	private static final long 				serialVersionUID = -2663340436788182341L;
 	public static final String				ARG_HELP_PORT = "helpPort";
 	
@@ -161,6 +162,11 @@ public class Application extends JFrame implements LocaleChangeListener {
 			stateString.message(Severity.info, ()->localizer.getValue(KEY_APPLICATION_READY));
 			pack();
 		}
+	}
+	
+	@Override
+	public LoggerFacade getLogger() {
+		return stateString;
 	}
 	
 	@Override
@@ -507,7 +513,7 @@ public class Application extends JFrame implements LocaleChangeListener {
 
 	private static class ApplicationArgParser extends ArgParser {
 		private static final ArgParser.AbstractArg[]	KEYS = {
-			new IntegerArg(ARG_HELP_PORT, true, "Help port to use for help browser", 13667)
+			new IntegerArg(ARG_HELP_PORT, true, "Help port to use for help browser", 0)
 		};
 		
 		ApplicationArgParser() {

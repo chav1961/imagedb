@@ -178,6 +178,7 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 			SwingUtils.assignActionKey(this, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->closeCallback.accept(SearchPanel.this), SwingUtils.ACTION_EXIT);
 			SwingUtils.assignActionKey(list, SwingUtils.KS_ACCEPT, (e)->gotoItem(), SwingUtils.ACTION_ACCEPT);
 			
+			list.setPreferredSize(new Dimension(100,100));
 			fillLocalizedStrings();
 			ToolTipManager.sharedInstance().registerComponent(list);
 			SwingUtilities.invokeLater(()->searchString.grabFocus());

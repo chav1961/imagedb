@@ -125,6 +125,8 @@
 		<key name="treeitem.tags.tt">Node tags</key>
 		<key name="treeitem.comment">Comment</key>
 		<key name="treeitem.comment.tt">Any comment</key>
+		<key name="treeitem.refs">References</key>
+		<key name="treeitem.refs.tt">References associated</key>
 
 <!-- Localization for image editor -->
 		<key name="imageitem.title">Image editor</key>
@@ -134,6 +136,8 @@
 		<key name="imageitem.tags.tt">Image tags</key>
 		<key name="imageitem.comment">Comment</key>
 		<key name="imageitem.comment.tt">Any comment</key>
+		<key name="imageitem.refs">References</key>
+		<key name="imageitem.refs.tt">References associated</key>
 
 <!-- Localization for search screen -->
 		<key name="search.caption">Search images...</key>				
@@ -277,6 +281,8 @@
 		<key name="treeitem.tags.tt">Теги (ключевые слова)</key>
 		<key name="treeitem.comment">Комментарий</key>
 		<key name="treeitem.comment.tt">Любой комментарий к узлу</key>
+		<key name="treeitem.refs">Ссылки</key>
+		<key name="treeitem.refs.tt">Связанные ссылки</key>
 
 <!-- Локализация для редактора картинки -->
 		<key name="imageitem.title">Описание изображения</key>
@@ -286,6 +292,8 @@
 		<key name="imageitem.tags.tt">Теги (ключевые слова)</key>
 		<key name="imageitem.comment">Комментарий</key>
 		<key name="imageitem.comment.tt">Любой комментарий к изображению</key>
+		<key name="imageitem.refs">Ссылки</key>
+		<key name="imageitem.refs.tt">Связанные ссылки</key>
 		
 <!-- Локализация для экрана поиска -->
 		<key name="search.caption">Поиск изображений</key>				

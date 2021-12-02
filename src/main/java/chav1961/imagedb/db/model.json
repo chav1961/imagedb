@@ -96,6 +96,14 @@
 						 "appUri":"app:column:/helen.contenttree/ct_Tags?seq=4&type=TEXT",
 						 "relUri":"ct_Tags",
 					 	 "format":""
+					},
+					 {"name":"ct_Refs",
+						 "type":"java.lang.String",
+						 "labelId":"helen.contenttree.ct_Refs",
+						 "tooltipId":"helen.contenttree.ct_Refs.tt",
+						 "appUri":"app:column:/helen.contenttree/ct_Refs?seq=5&type=TEXT",
+						 "relUri":"ct_Refs",
+					 	 "format":""
 					}
 				 ]
 			},
@@ -145,6 +153,14 @@
 						 "tooltipId":"helen.contentimage.ci_Tags.tt",
 						 "appUri":"app:column:/helen.contentimage/ci_Tags?seq=5&type=TEXT",
 						 "relUri":"ci_Tags",
+					 	 "format":""
+					},
+					 {"name":"ci_Refs",
+						 "type":"java.lang.String",
+						 "labelId":"helen.contentimage.ci_Refs",
+						 "tooltipId":"helen.contentimage.ci_Refs.tt",
+						 "appUri":"app:column:/helen.contentimage/ci_Refs?seq=6&type=TEXT",
+						 "relUri":"ci_Refs",
 					 	 "format":""
 					}
 				 ]
