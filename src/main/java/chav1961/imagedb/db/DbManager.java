@@ -11,6 +11,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.swing.JOptionPane;
@@ -104,25 +105,9 @@ public class DbManager {
 	}
 	
 	private DbState validateDbStructure(final DatabaseMetaData metaData, final ContentNodeMetadata model) throws ContentException {
-		// TODO Auto-generated method stub
 		final ContentMetadataInterface	mdi = ContentModelFactory.forDBContentDescription(metaData, null, model.getName());
 
 		if (mdi != null) {
-			
-			try {
-				final JContentMetadataEditor 	ed = new JContentMetadataEditor(PureLibSettings.PURELIB_LOCALIZER);
-				
-				ed.setEditorMode(EditorMode.NODE_AND_SUBTREE);
-				ed.setPreferredSize(new Dimension(600,400));
-				ed.setValue(mdi.getRoot());
-				JOptionPane.showMessageDialog(null, new JScrollPane(ed));
-			} catch (LocalizationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			
-			
 			ModelUtils.compare(mdi.getRoot(), model, (left, right, diff, details) -> {
 				System.err.println(">>> left="+left+", right="+right+", diff="+diff+", details="+details);
 				return ContinueMode.CONTINUE;
@@ -131,6 +116,18 @@ public class DbManager {
 		}
 		else {
 			return DbState.CLEAN;
+		}
+	}
+
+	public void restoreDatabaseByModel(final ZipInputStream zis) throws SQLException {
+		try{
+			if (validateDbStructure(conn.getMetaData(), loadModel()) != DbState.STRUCTURE_VALID) {
+				removeDatabaseByModel();
+				createDatabaseByModel();
+			}
+			SQLModelUtils.restoreDatabaseByModel(conn, loadModel(), zis);
+		} catch (ContentException | IOException e) {
+			throw new SQLException(e);
 		}
 	}
 }

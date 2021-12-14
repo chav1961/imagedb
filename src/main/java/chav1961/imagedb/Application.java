@@ -2,6 +2,7 @@ package chav1961.imagedb;
 
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.HeadlessException;
@@ -21,11 +22,13 @@ import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Hashtable;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
@@ -41,6 +44,11 @@ import javax.swing.border.EtchedBorder;
 import chav1961.imagedb.db.DbManager;
 import chav1961.imagedb.db.DbUtil;
 import chav1961.imagedb.dialogs.AskPassword;
+import chav1961.imagedb.dialogs.DemoWizard;
+import chav1961.imagedb.dialogs.DemoWizardStep1;
+import chav1961.imagedb.dialogs.DemoWizardStep2;
+import chav1961.imagedb.dialogs.DemoWizardStep3;
+import chav1961.imagedb.dialogs.DemoWizardStep4;
 import chav1961.imagedb.dialogs.FilterItem;
 import chav1961.imagedb.dialogs.Settings;
 import chav1961.imagedb.screen.Navigator;
@@ -71,7 +79,9 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
+import chav1961.purelib.ui.interfaces.WizardStep;
 import chav1961.purelib.ui.swing.AutoBuiltForm;
+import chav1961.purelib.ui.swing.SimpleWizard;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
@@ -86,6 +96,7 @@ public class Application extends JFrame implements LocaleChangeListener, LoggerF
 	
 	public static final String				KEY_TITLE_APPLICATION = "application.title";
 	public static final String				KEY_TITLE_HELP_ABOUT_APPLICATION = "application.help.title";
+	public static final String				KEY_TITLE_DEMO_WIZARD = "application.demo.wizard.title";
 	public static final String				KEY_HELP_ABOUT_APPLICATION = "application.help";
 	public static final String				KEY_APPLICATION_READY = "application.ready";
 	public static final String				KEY_APPLICATION_COMPLETED = "application.completed";
@@ -397,7 +408,24 @@ public class Application extends JFrame implements LocaleChangeListener, LoggerF
 	
 	@OnAction("action:/tools.db.restore")
 	private void dbRestore() {
-		
+		withConnection((conn)->{
+			try(final FileSystemInterface	fsi = FileSystemFactory.createFileSystem(URI.create("fsys:file:/"))) {
+				for (String item : JFileSelectionDialog.select((Frame)null, localizer, fsi, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE, FilterCallback.of("ZIP files", "*.zip"))) {
+					try(final FileSystemInterface	file = fsi.open(item.endsWith(".zip") ? item : item+".zip");
+						final InputStream			os = file.read();
+						final ZipInputStream		zis = new ZipInputStream(os)) {
+						
+						new DbManager(conn).restoreDatabaseByModel(zis);
+						stateString.message(Severity.info, ()->localizer.getValue(KEY_APPLICATION_COMPLETED));
+						break;
+					}
+				}
+			} catch (IOException | SQLException | LocalizationException e) {
+				e.printStackTrace();
+				stateString.message(Severity.error, e.getLocalizedMessage(), e);
+			}
+			return null;
+		});
 	}
 
 	@OnAction("action:/tools.db.uninstall")
@@ -412,17 +440,39 @@ public class Application extends JFrame implements LocaleChangeListener, LoggerF
 		});
 	}
 	
+	@OnAction("action:/tools.db.demo")
+	private void createDemo() {
+		final DemoWizard			dw = new DemoWizard();
+		
+		try(final SimpleURLClassLoader	loader = new SimpleURLClassLoader(new URL[0]);) {
+			final Map<String, Object>	map = Utils.mkMap("loader", loader, SimpleWizard.PROP_LOCALIZER, localizer);
+			
+			try(final SimpleWizard<DemoWizard, DemoWizard.Errors>	sw = new SimpleWizard<DemoWizard, DemoWizard.Errors>(this, KEY_TITLE_DEMO_WIZARD, Dialog.ModalityType.APPLICATION_MODAL, map, new WizardStep[]{
+												new DemoWizardStep1(localizer, stateString, loader),
+												new DemoWizardStep2(localizer, stateString, loader),
+												new DemoWizardStep3(localizer, stateString, loader),
+												new DemoWizardStep4(localizer, stateString, loader)
+											})) {
+
+				if (sw.animate(dw)) {
+					settings.driver = dw.driverLocation;
+					settings.connectionString = dw.connURI;
+					settings.user = dw.user;
+					saveSettings();
+					stateString.message(Severity.info, "Settings are saved");
+				}
+			}
+		} catch (LocalizationException | FlowException | InterruptedException | IOException | ContentException e) {
+			e.printStackTrace();
+			stateString.message(Severity.error, e.getLocalizedMessage(), e);
+		}
+	}
+		
+	
 	@OnAction("action:/tools.settings")
 	private void settings() {
 		if (ask(settings,350,120)) {
-			settings.save(props);
-			try(final FileOutputStream	fos = new FileOutputStream(new File(PROP_INI_FILE))) {
-				
-				props.store(fos, "");
-				stateString.message(Severity.info, ()->localizer.getValue(KEY_SETTINGS_SAVED));
-			} catch (IOException e) {
-				stateString.message(Severity.error, e.getLocalizedMessage());
-			}
+			saveSettings();
 		}
 		else {
 			settings.load(props);
@@ -457,6 +507,17 @@ public class Application extends JFrame implements LocaleChangeListener, LoggerF
 				break;
 			default:
 				break;
+		}
+	}
+
+	private void saveSettings() {
+		settings.save(props);
+		try(final FileOutputStream	fos = new FileOutputStream(new File(PROP_INI_FILE))) {
+			
+			props.store(fos, "");
+			stateString.message(Severity.info, ()->localizer.getValue(KEY_SETTINGS_SAVED));
+		} catch (IOException e) {
+			stateString.message(Severity.error, e.getLocalizedMessage());
 		}
 	}
 	

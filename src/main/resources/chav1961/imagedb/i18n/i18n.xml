@@ -4,6 +4,7 @@
 <!-- Localization for application titles --> 
 		<key name="application.title">(c) 2021 A.V.Chernomyrdin aka chav1961. Image database V.R.=0.0.1</key>
 		<key name="application.help.title">About...</key>
+		<key name="application.demo.wizard.title">Demo database installation wizard</key>
 		<key name="application.help">This application uses to store pictures with their's attributes and quick search by them</key>
 		<key name="application.ready">Ready to work...</key>
 		<key name="application.completed">Completed</key>
@@ -40,6 +41,8 @@
 		<key name="menu.tools.db.restore.tt">Restore database from backup</key>
 		<key name="menu.tools.db.uninstall">Uninstall</key>
 		<key name="menu.tools.db.uninstall.tt">Uninstall all database content</key>
+		<key name="menu.tools.db.demo">Create demo</key>
+		<key name="menu.tools.db.demo.tt">Create demo database</key>
 		<key name="menu.tools.settings">Settings</key>
 		<key name="menu.tools.settings.tt">Application settings</key>
 		<key name="menu.tools.languages">Languages</key>
@@ -154,12 +157,48 @@
 		<key name="filteritem.title.tt">Filter content by tags</key>
 		<key name="filteritem.tags">Tags:</key>
 		<key name="filteritem.tags.tt">Tags have known at the current time in the system</key>
+
+<!-- Localization for demo-database wizard -->
+		<key name="demowizardstep1.title">Соединение с БД</key>
+		<key name="demowizardstep1.title.tt">Для описания соединения с БД укажите местоположение драйвера JDBC, строку соединения, имя администратора БД и его пароль</key>
+		<key name="demowizardstep1.title.help">Соединение с БД</key>
+		<key name="demowizardstep1.testconnection">Тест соединения</key>
+		<key name="demowizardstep1.testconnection.tt">Тест параметров соединения с БД</key>
+		<key name="demowizardstep1.driver">Файл драйвера</key>
+		<key name="demowizardstep1.driver.tt">Укажите местоположение файла драйвера</key>
+		<key name="demowizardstep1.connurl">Строка соединения</key>
+		<key name="demowizardstep1.connurl.tt">Задайте строку соединения</key>
+		<key name="demowizardstep1.superuser">Администратор БД</key>
+		<key name="demowizardstep1.superuser.tt">Укажите имя администратора БД с правами суперпольозвателя</key>
+		<key name="demowizardstep1.password">Пароль</key>
+		<key name="demowizardstep1.password.tt">Укажите пароль администратора</key>
+
+		<key name="demowizardstep2.title">Пользователь и пароль</key>
+		<key name="demowizardstep2.title.tt">Для создания пользователя и схемы в БД укажите имя пользователя и пароль</key>
+		<key name="demowizardstep2.title.help">Пользователь и пароль</key>
+		<key name="demowizardstep2.user">Пользователь</key>
+		<key name="demowizardstep2.user.tt">Задайте имя пользователя</key>
+		<key name="demowizardstep2.password">Пароль</key>
+		<key name="demowizardstep2.password.tt">Задайте пароль</key>
+		<key name="demowizardstep2.password.retype">Повторите пароль</key>
+		<key name="demowizardstep2.password.retype.tt">Задайте тот же самый пароль еще раз</key>
+
+		<key name="demowizardstep3.title">Создание демо-базы</key>
+		<key name="demowizardstep3.title.tt">Ждите окончания процесса создания демо-базы</key>
+		<key name="demowizardstep3.title.help">Создание демо-базы</key>
+		<key name="demowizardstep3.processing">Обработка</key>
+		<key name="demowizardstep3.processing.tt">Создание демо-базы</key>
+
+		<key name="demowizardstep4.title">Демо-база создана</key>
+		<key name="demowizardstep4.title.tt">Создание демо-базы завершено, можете работать</key>
+		<key name="demowizardstep4.title.help">Демо-база создана</key>
 		
 	</lang>
 	<lang name="ru">
 <!-- Локализация заголовков приложения -->
 		<key name="application.title">(c) 2019 A.V.Chernomyrdin aka chav1961. База данных картинок V.R.=0.0.1</key>
 		<key name="application.help.title">О программе</key>
+		<key name="application.demo.wizard.title">Мастер установки демо-базы</key>
 		<key name="application.help">Программа предназначена для хранения картинок с их аттрибутами и быстрого поиска по ним</key>
 		<key name="application.ready">Готово к работе...</key>
 		<key name="application.completed">Выполнено</key>
@@ -196,6 +235,8 @@
 		<key name="menu.tools.db.restore.tt">Восстановить содержимое БД из выбранной копии</key>
 		<key name="menu.tools.db.uninstall">Снести</key>
 		<key name="menu.tools.db.uninstall.tt">Удалить установленную БД вместе с данными</key>
+		<key name="menu.tools.db.demo">Создать демо-базу</key>
+		<key name="menu.tools.db.demo.tt">Создать демострационную БД</key>
 		<key name="menu.tools.settings">Настройки</key>
 		<key name="menu.tools.settings.tt">Настройки приложения</key>
 		<key name="menu.tools.languages">Язык</key>
@@ -311,6 +352,40 @@
 		<key name="filteritem.tags">Теги:</key>
 		<key name="filteritem.tags.tt">Теги, сушествуюшие в системе на данный момент</key>
 		
+<!-- Локализация создателя демо-базы -->
+		<key name="demowizardstep1.title">Соединение с БД</key>
+		<key name="demowizardstep1.title.tt">Для описания соединения с БД укажите местоположение драйвера JDBC, строку соединения, имя администратора БД и его пароль</key>
+		<key name="demowizardstep1.title.help">Соединение с БД</key>
+		<key name="demowizardstep1.testconnection">Тест соединения</key>
+		<key name="demowizardstep1.testconnection.tt">Тест параметров соединения с БД</key>
+		<key name="demowizardstep1.driver">Файл драйвера</key>
+		<key name="demowizardstep1.driver.tt">Укажите местоположение файла драйвера</key>
+		<key name="demowizardstep1.connurl">Строка соединения</key>
+		<key name="demowizardstep1.connurl.tt">Задайте строку соединения</key>
+		<key name="demowizardstep1.superuser">Администратор БД</key>
+		<key name="demowizardstep1.superuser.tt">Укажите имя администратора БД с правами суперпольозвателя</key>
+		<key name="demowizardstep1.password">Пароль</key>
+		<key name="demowizardstep1.password.tt">Укажите пароль администратора</key>
+
+		<key name="demowizardstep2.title">Пользователь и пароль</key>
+		<key name="demowizardstep2.title.tt">Для создания пользователя и схемы в БД укажите имя пользователя и пароль</key>
+		<key name="demowizardstep2.title.help">Пользователь и пароль</key>
+		<key name="demowizardstep2.user">Пользователь</key>
+		<key name="demowizardstep2.user.tt">Задайте имя пользователя</key>
+		<key name="demowizardstep2.password">Пароль</key>
+		<key name="demowizardstep2.password.tt">Задайте пароль</key>
+		<key name="demowizardstep2.password.retype">Повторите пароль</key>
+		<key name="demowizardstep2.password.retype.tt">Задайте тот же самый пароль еще раз</key>
+
+		<key name="demowizardstep3.title">Создание демо-базы</key>
+		<key name="demowizardstep3.title.tt">Ждите окончания процесса создания демо-базы</key>
+		<key name="demowizardstep3.title.help">Создание демо-базы</key>
+		<key name="demowizardstep3.processing">Обработка</key>
+		<key name="demowizardstep3.processing.tt">Создание демо-базы</key>
+
+		<key name="demowizardstep4.title">Демо-база создана</key>
+		<key name="demowizardstep4.title.tt">Создание демо-базы завершено, можете работать</key>
+		<key name="demowizardstep4.title.help">Демо-база создана</key>
 		
 	</lang>	
 </localization>

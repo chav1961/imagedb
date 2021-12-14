@@ -22,6 +22,8 @@
 				<app:item name="menu.tools.db.restore" caption="menu.tools.db.restore" tooltip="menu.tools.db.restore.tt" action="tools.db.restore"/>
 				<app:separator/>
 				<app:item name="menu.tools.db.uninstall" caption="menu.tools.db.uninstall" tooltip="menu.tools.db.uninstall.tt" action="tools.db.uninstall"/>
+				<app:separator/>
+				<app:item name="menu.tools.db.demo" caption="menu.tools.db.demo" tooltip="menu.tools.db.demo.tt" action="tools.db.demo"/>
 			</app:submenu>
 			<app:builtinSubmenu name="builtin.languages" caption="menu.tools.languages" tooltip="menu.tools.languages.tt"/>
 			<app:separator/>

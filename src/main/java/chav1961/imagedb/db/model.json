@@ -35,7 +35,7 @@
 						 "type":"java.sql.Date",
 						 "labelId":"helen.dbversion.dbv_dateInstalled",
 						 "tooltipId":"helen.dbversion.dbv_dateInstalled.tt",
-						 "appUri":"app:column:/helen.dbversion/dbv_dateInstalled?seq=2&type=DATETIME",
+						 "appUri":"app:column:/helen.dbversion/dbv_dateInstalled?seq=2&type=TIMESTAMP",
 						 "relUri":"dbv_dateInstalled",
 					 	 "format":"12ms"
 					},
