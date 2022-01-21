@@ -2,7 +2,6 @@ package chav1961.imagedb.dialogs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.sql.Connection;
@@ -27,7 +26,6 @@ import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.Format;
 import chav1961.purelib.ui.interfaces.RefreshMode;
-import chav1961.purelib.ui.swing.useful.JLocalizedOptionPane;
 
 @LocaleResourceLocation("i18n:xml:root://chav1961.imagedb.dialogs.Settings/chav1961/imagedb/i18n/i18n.xml")
 @LocaleResource(value="settings.title",tooltip="settings.title.tt",help="settings.title.help")
@@ -87,7 +85,7 @@ public class Settings implements FormManager<Object,Settings>, ModuleAccessor {
 	}
 	
 	@Override
-	public RefreshMode onAction(final Settings inst, final Object id, final String actionName, final Object parameter) throws FlowException, LocalizationException {
+	public RefreshMode onAction(final Settings inst, final Object id, final String actionName, final Object... parameter) throws FlowException, LocalizationException {
 		switch (actionName) {
 			case "app:action:/Settings.test" :
 				try(final SimpleURLClassLoader	sucl = new SimpleURLClassLoader(new URL[] {driver.toURI().toURL()})) {

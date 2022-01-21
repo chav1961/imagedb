@@ -152,7 +152,7 @@ public class DemoWizardStep1 implements WizardStep<DemoWizard, DemoWizard.Errors
 	}
 
 	@Override
-	public RefreshMode onAction(final DemoWizardStep1 inst, final Object id, final String actionName, final Object parameter) throws FlowException, LocalizationException {
+	public RefreshMode onAction(final DemoWizardStep1 inst, final Object id, final String actionName, final Object... parameter) throws FlowException, LocalizationException {
 		final JButton	button = (JButton)SwingUtils.findComponentByName(form, "ui:/chav1961.imagedb.dialogs.DemoWizardStep1/DemoWizardStep1.testConnection");
 		
 		if (validateConnection(driverLocation, connURI, superUser, superPassword)) {

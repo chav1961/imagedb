@@ -48,7 +48,6 @@ public class DemoWizardStep3 implements WizardStep<DemoWizard, DemoWizard.Errors
 	@Format("30*10ro")
 	public ItemAndSelection<String>[]	steps = ItemAndSelection.of("Create user and schema","Load demo database");
 	
-	
 	public DemoWizardStep3(final Localizer localizer, final LoggerFacade logger, final SimpleURLClassLoader loader) throws LocalizationException, ContentException {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");

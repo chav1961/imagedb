@@ -1,38 +1,24 @@
 package chav1961.imagedb.db;
 
 
-import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Set;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.ModelUtils;
-import chav1961.purelib.model.SchemaContainer;
-import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
-import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.sql.model.SQLModelUtils;
 import chav1961.purelib.streams.JsonStaxParser;
-import chav1961.purelib.ui.swing.useful.JContentMetadataEditor;
-import chav1961.purelib.ui.swing.useful.JContentMetadataEditor.EditorMode;
 
 public class DbManager {
 	public static final String	APPLICATION_SCHEMA = "helen";
