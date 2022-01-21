@@ -3,3 +3,5 @@
 /.project
 /.classpath
 /dependency-reduced-pom.xml
+/.imagedb.props.new
+/.imagedb.props.old
