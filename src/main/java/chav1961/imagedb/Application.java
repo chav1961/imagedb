@@ -67,7 +67,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
-import chav1961.purelib.basic.interfaces.LoggerFacadeKeeper;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
@@ -90,7 +90,7 @@ import chav1961.purelib.ui.swing.useful.JStateString;
 import chav1961.purelib.ui.swing.useful.JSystemTray;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 
-public class Application extends JFrame implements LocaleChangeListener, LoggerFacadeKeeper {
+public class Application extends JFrame implements LocaleChangeListener, LoggerFacadeOwner {
 	private static final long 				serialVersionUID = -2663340436788182341L;
 	public static final String				ARG_HELP_PORT = "helpPort";
 	

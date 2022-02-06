@@ -84,7 +84,7 @@ public class DbManager {
 	
 	public void removeDatabaseByModel() throws SQLException {
 		try{
-			SQLModelUtils.removeDatabaseByModel(conn, loadModel());
+			SQLModelUtils.removeDatabaseByModel(conn, loadModel(), true);
 		} catch (IOException e) {
 			throw new SQLException(e.getLocalizedMessage(), e); 
 		}
