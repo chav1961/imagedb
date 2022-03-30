@@ -546,7 +546,7 @@ public class Application extends JFrame implements LocaleChangeListener, LoggerF
 				final Application				app = new Application(xda,parser.getValue(ARG_HELP_PORT,int.class),PureLibSettings.PURELIB_LOCALIZER,logger,latch);
 	
 				if (SystemTray.isSupported()) {
-					try(final JSystemTray		tray = new JSystemTray(LocalizerFactory.getLocalizer(xda.getRoot().getLocalizerAssociated()), "Image Database", app.getClass().getResource("tray.png").toURI(), KEY_TITLE_APPLICATION, app.trayMenu)) {
+					try(final JSystemTray		tray = new JSystemTray(LocalizerFactory.getLocalizer(xda.getRoot().getLocalizerAssociated()), "Image Database", app.getClass().getResource("tray.png").toURI(), KEY_TITLE_APPLICATION, app.trayMenu, false)) {
 						final ActionListener	al = (e)->{
 													app.setVisible(!app.isVisible());
 												};
