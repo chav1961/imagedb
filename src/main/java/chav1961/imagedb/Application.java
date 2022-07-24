@@ -195,7 +195,7 @@ public class Application extends JFrame implements LocaleChangeListener, LoggerF
 	public <T> boolean ask(final T instance, final int width, final int height) {
 		try{final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(instance.getClass());
 		
-			try(final AutoBuiltForm<T>		abf = new AutoBuiltForm<T>(mdi,localizer,PureLibSettings.INTERNAL_LOADER,instance,(FormManager<Object,T>)instance)) {
+			try(final AutoBuiltForm<T,?>		abf = new AutoBuiltForm<>(mdi,localizer,PureLibSettings.INTERNAL_LOADER,instance,(FormManager<Object,T>)instance)) {
 				
 				for (Module m : abf.getUnnamedModules()) {
 					instance.getClass().getModule().addExports(instance.getClass().getPackageName(),m);

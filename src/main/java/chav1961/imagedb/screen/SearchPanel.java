@@ -80,7 +80,7 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 	private final DefaultListModel<SearchResult>	listModel = new DefaultListModel<>();
 	private final JList<SearchResult>				list;
 	private final FilterItem						filter;
-	private final AutoBuiltForm<FilterItem>			abf;
+	private final AutoBuiltForm<FilterItem,?>		abf;
 	
 	public SearchPanel(final Localizer localizer, final LoggerFacade logger, final Connection conn, final Consumer<SearchPanel> closeCallback, final Consumer<SearchResult> selectCallback) throws NullPointerException, LocalizationException, SQLException {
 		if (localizer == null) {
@@ -200,9 +200,9 @@ public class SearchPanel extends JPanel implements LocaleChangeListener{
 		this.abf.setVisible(visible);
 	}
 
-	public <T> AutoBuiltForm<T> buildFacets(final T instance, final int width, final int height) {
+	public <T> AutoBuiltForm<T,?> buildFacets(final T instance, final int width, final int height) {
 		try{final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(instance.getClass());
-			final AutoBuiltForm<T>			abf = new AutoBuiltForm<T>(mdi,localizer,PureLibSettings.INTERNAL_LOADER,instance,(FormManager<Object,T>)instance);
+			final AutoBuiltForm<T,?>		abf = new AutoBuiltForm<>(mdi,localizer,PureLibSettings.INTERNAL_LOADER,instance,(FormManager<Object,T>)instance);
 			
 			for (Module m : abf.getUnnamedModules()) {
 				instance.getClass().getModule().addExports(instance.getClass().getPackageName(),m);

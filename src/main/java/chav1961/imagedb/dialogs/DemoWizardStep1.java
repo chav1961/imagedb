@@ -42,13 +42,13 @@ import chav1961.purelib.ui.swing.SwingUtils;
 @LocaleResourceLocation("i18n:xml:root://chav1961.imagedb.dialogs.DemoWizardStep1/chav1961/imagedb/i18n/i18n.xml")
 @LocaleResource(value="demowizardstep1.title",tooltip="demowizardstep1.title.tt",help="demowizardstep1.title.help")
 @Action(resource=@LocaleResource(value="demowizardstep1.testconnection",tooltip="demowizardstep1.testconnection.tt"),actionString="testConnection")
-public class DemoWizardStep1 implements WizardStep<DemoWizard, DemoWizard.Errors, AutoBuiltForm<DemoWizardStep1>>, FormManager<Object, DemoWizardStep1> {
+public class DemoWizardStep1 implements WizardStep<DemoWizard, DemoWizard.Errors, AutoBuiltForm<DemoWizardStep1,?>>, FormManager<Object, DemoWizardStep1> {
 	private static final Icon	SUCCESS = new ImageIcon(DemoWizardStep1.class.getResource("greenMark.png")); 
 	private static final Icon	FAILED = new ImageIcon(DemoWizardStep1.class.getResource("redMark.png")); 
 	
 	private final LoggerFacade						logger;
 	private final ContentMetadataInterface			mdi;
-	private final AutoBuiltForm<DemoWizardStep1>	form; 
+	private final AutoBuiltForm<DemoWizardStep1,?>	form; 
 	
 	@LocaleResource(value="demowizardstep1.driver",tooltip="demowizardstep1.driver.tt")
 	@Format("30ms")
@@ -111,7 +111,7 @@ public class DemoWizardStep1 implements WizardStep<DemoWizard, DemoWizard.Errors
 	}
 
 	@Override
-	public AutoBuiltForm<DemoWizardStep1> getContent() {
+	public AutoBuiltForm<DemoWizardStep1,?> getContent() {
 		return form;
 	}
 

@@ -39,10 +39,10 @@ import chav1961.purelib.ui.swing.AutoBuiltForm;
 
 @LocaleResourceLocation("i18n:xml:root://chav1961.imagedb.dialogs.DemoWizardStep3/chav1961/imagedb/i18n/i18n.xml")
 @LocaleResource(value="demowizardstep3.title",tooltip="demowizardstep3.title.tt",help="demowizardstep3.title.help")
-public class DemoWizardStep3 implements WizardStep<DemoWizard, DemoWizard.Errors, AutoBuiltForm<DemoWizardStep3>>, FormManager<Object, DemoWizardStep3> {
+public class DemoWizardStep3 implements WizardStep<DemoWizard, DemoWizard.Errors, AutoBuiltForm<DemoWizardStep3,?>>, FormManager<Object, DemoWizardStep3> {
 	private final LoggerFacade						logger;
 	private final ContentMetadataInterface			mdi;
-	private final AutoBuiltForm<DemoWizardStep3>	form; 
+	private final AutoBuiltForm<DemoWizardStep3,?>	form; 
 	
 	@LocaleResource(value="demowizardstep3.processing",tooltip="demowizardstep3.processing.tt")
 	@Format("30*10ro")
@@ -92,7 +92,7 @@ public class DemoWizardStep3 implements WizardStep<DemoWizard, DemoWizard.Errors
 	}
 
 	@Override
-	public AutoBuiltForm<DemoWizardStep3> getContent() {
+	public AutoBuiltForm<DemoWizardStep3,?> getContent() {
 		return form;
 	}
 
